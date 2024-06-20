@@ -1,9 +1,25 @@
 package util
 
 import android.content.Context
+import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.os.Build
 import android.content.pm.Signature
+import android.os.Build
+
+/**
+ * 获取已安装的应用
+ */
+fun Context.getAppInfos(): List<PackageInfo> {
+    return packageManager.getInstalledPackages(PackageManager.MATCH_UNINSTALLED_PACKAGES)
+}
+
+/**
+ * 获取已安装的应用
+ */
+fun Context.getAppInfo(packageName: String): PackageInfo {
+    return packageManager.getPackageInfo(packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES)
+}
+
 /**
  * 返回对应包的签名信息
  * @param packageName 包名

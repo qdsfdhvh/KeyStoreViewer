@@ -28,16 +28,19 @@ kotlin {
         }
         commonMain.dependencies {
             implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
             implementation(compose.ui)
+            implementation(compose.foundation)
+            implementation(compose.material3)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
+            implementation(libs.bundles.voyager)
+            implementation("com.squareup.okio:okio:3.9.0")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
         }
     }
+    jvmToolchain(11)
 }
 
 android {
