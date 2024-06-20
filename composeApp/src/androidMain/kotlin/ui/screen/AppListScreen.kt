@@ -27,69 +27,69 @@ import ui.widget.rememberPackageName
 import util.getAppInfos
 
 object AppListScreen : Screen {
-    // private fun readResolve(): Any = AppListScreen
+  // private fun readResolve(): Any = AppListScreen
 
-    @Composable
-    override fun Content() {
-        val navigator = LocalNavigator.current
+  @Composable
+  override fun Content() {
+    val navigator = LocalNavigator.current
 
-        val context = LocalContext.current
-        val packages by produceState(emptyList()) {
-            value = withContext(Dispatchers.IO) {
-                context.getAppInfos()
-            }
-        }
-
-        Scaffold { innerPadding ->
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = innerPadding,
-            ) {
-                items(packages) { appInfo ->
-                    AppItem(
-                        item = appInfo,
-                        onClick = {
-                            navigator.push(SignatureDetailScreen(appInfo.packageName))
-                        },
-                        context = context,
-                    )
-                }
-            }
-        }
+    val context = LocalContext.current
+    val packages by produceState(emptyList()) {
+      value = withContext(Dispatchers.IO) {
+        context.getAppInfos()
+      }
     }
 
-    @Composable
-    private fun AppItem(
-        item: PackageInfo,
-        onClick: () -> Unit,
-        modifier: Modifier = Modifier,
-        context: Context = LocalContext.current,
+    Scaffold { innerPadding ->
+      LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = innerPadding,
+      ) {
+        items(packages) { appInfo ->
+          AppItem(
+            item = appInfo,
+            onClick = {
+              navigator.push(SignatureDetailScreen(appInfo.packageName))
+            },
+            context = context,
+          )
+        }
+      }
+    }
+  }
+
+  @Composable
+  private fun AppItem(
+    item: PackageInfo,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    context: Context = LocalContext.current,
+  ) {
+    Surface(
+      onClick = onClick,
+      tonalElevation = 1.dp,
+      modifier = modifier,
     ) {
-        Surface(
-            onClick = onClick,
-            tonalElevation = 1.dp,
-            modifier = modifier,
-        ) {
-            ListItem(
-                leadingContent = {
-                    val icon by rememberPackageIcon(item, context)
-                    icon?.let {
-                        Image(
-                            it,
-                            contentDescription = null,
-                            modifier = Modifier.size(40.dp)
-                        )
-                    } ?: run {
-                        Spacer(Modifier.size(40.dp))
-                    }
-                },
-                headlineContent = {
-                    Text(rememberPackageName(item))
-                },
-                supportingContent = {
-                    Text(item.packageName)
-                },
+      ListItem(
+        leadingContent = {
+          val icon by rememberPackageIcon(item, context)
+          icon?.let {
+            Image(
+              it,
+              contentDescription = null,
+              modifier = Modifier.size(40.dp),
             )
-        }
+          } ?: run {
+            Spacer(Modifier.size(40.dp))
+          }
+        },
+        headlineContent = {
+          Text(rememberPackageName(item))
+        },
+        supportingContent = {
+          Text(item.packageName)
+        },
+      )
     }
+  }
 }

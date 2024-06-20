@@ -1,5 +1,5 @@
 package platform
 
 actual abstract class PlatformContext {
-    companion object : PlatformContext()
+  companion object : PlatformContext()
 }

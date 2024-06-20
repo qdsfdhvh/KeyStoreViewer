@@ -15,24 +15,20 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun rememberPackageName(
-    packageInfo: PackageInfo,
-    context: Context = LocalContext.current,
-): String {
-    return rememberSaveable {
-        packageInfo.applicationInfo.loadLabel(context.packageManager).toString()
-    }
+  packageInfo: PackageInfo,
+  context: Context = LocalContext.current,
+): String = rememberSaveable {
+  packageInfo.applicationInfo.loadLabel(context.packageManager).toString()
 }
 
 @Composable
 fun rememberPackageIcon(
-    packageInfo: PackageInfo,
-    context: Context = LocalContext.current,
-): State<ImageBitmap?> {
-    return produceState<ImageBitmap?>(null, packageInfo, context) {
-        value = withContext(Dispatchers.IO) {
-            packageInfo.applicationInfo.loadIcon(context.packageManager)
-                ?.toBitmapOrNull()
-                ?.asImageBitmap()
-        }
-    }
+  packageInfo: PackageInfo,
+  context: Context = LocalContext.current,
+): State<ImageBitmap?> = produceState<ImageBitmap?>(null, packageInfo, context) {
+  value = withContext(Dispatchers.IO) {
+    packageInfo.applicationInfo.loadIcon(context.packageManager)
+      ?.toBitmapOrNull()
+      ?.asImageBitmap()
+  }
 }

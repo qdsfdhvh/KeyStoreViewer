@@ -13,12 +13,12 @@ import platform.currentName
 @Composable
 @Preview
 fun App() {
-    MaterialTheme {
-        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            val platformName = remember {
-                PlatformType.currentName
-            }
-            Text("Compose: $platformName")
-        }
+  MaterialTheme {
+    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+      val platformName = remember {
+        PlatformType.currentName
+      }
+      Text("Compose: $platformName")
     }
+  }
 }

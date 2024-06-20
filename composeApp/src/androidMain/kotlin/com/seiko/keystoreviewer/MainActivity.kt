@@ -11,14 +11,14 @@ import ui.screen.AppListScreen
 import ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
-        super.onCreate(savedInstanceState)
-        setContent {
-            AppTheme {
-                val navigator = remember { Navigator(AppListScreen) }
-                NavHost(navigator)
-            }
-        }
+  override fun onCreate(savedInstanceState: Bundle?) {
+    enableEdgeToEdge()
+    super.onCreate(savedInstanceState)
+    setContent {
+      AppTheme {
+        val navigator = remember { Navigator(AppListScreen) }
+        NavHost(navigator)
+      }
     }
+  }
 }

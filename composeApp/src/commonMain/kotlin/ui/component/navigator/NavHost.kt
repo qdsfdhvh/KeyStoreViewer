@@ -11,25 +11,25 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun NavHost(
-    navigator: Navigator,
-    modifier: Modifier = Modifier,
+  navigator: Navigator,
+  modifier: Modifier = Modifier,
 ) {
-    val saveableStateHolder = rememberSaveableStateHolder()
-    CompositionLocalProvider(LocalNavigator provides navigator) {
-        AnimatedContent(
-            navigator.lastItem,
-            transitionSpec = {
-               if (navigator.lastEvent == LastEvent.Push) {
-                   (slideInHorizontally { it }) togetherWith (slideOutHorizontally { -it })
-               } else {
-                   (slideInHorizontally { -it }) togetherWith (slideOutHorizontally { it })
-               }
-            },
-            modifier = modifier,
-        ) { entry ->
-            saveableStateHolder.SaveableStateProvider(entry.index) {
-                entry.screen.Content()
-            }
+  val saveableStateHolder = rememberSaveableStateHolder()
+  CompositionLocalProvider(LocalNavigator provides navigator) {
+    AnimatedContent(
+      navigator.lastItem,
+      transitionSpec = {
+        if (navigator.lastEvent == LastEvent.Push) {
+          (slideInHorizontally { it }) togetherWith (slideOutHorizontally { -it })
+        } else {
+          (slideInHorizontally { -it }) togetherWith (slideOutHorizontally { it })
         }
+      },
+      modifier = modifier,
+    ) { entry ->
+      saveableStateHolder.SaveableStateProvider(entry.index) {
+        entry.screen.Content()
+      }
     }
+  }
 }

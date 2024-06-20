@@ -1,11 +1,11 @@
 package platform
 
 enum class PlatformType {
-    Android,
-    Desktop,
-    ;
+  Android,
+  Desktop,
+  ;
 
-    companion object
+  companion object
 }
 
 expect val PlatformType.Companion.current: PlatformType
