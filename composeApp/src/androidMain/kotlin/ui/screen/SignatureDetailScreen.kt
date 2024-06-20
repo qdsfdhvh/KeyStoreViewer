@@ -32,12 +32,11 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.ByteString
+import ui.component.navigator.LocalNavigator
+import ui.component.navigator.Screen
 import ui.widget.rememberPackageIcon
 import ui.widget.rememberPackageName
 import util.getAppInfo
@@ -52,7 +51,7 @@ class SignatureDetailScreen(
     @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @Composable
     override fun Content() {
-        val navigator = LocalNavigator.currentOrThrow
+        val navigator = LocalNavigator.current
 
         Scaffold(
             topBar = {

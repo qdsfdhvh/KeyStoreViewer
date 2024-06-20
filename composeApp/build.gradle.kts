@@ -33,7 +33,6 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-            implementation(libs.bundles.voyager)
             implementation("com.squareup.okio:okio:3.9.0")
         }
         desktopMain.dependencies {
