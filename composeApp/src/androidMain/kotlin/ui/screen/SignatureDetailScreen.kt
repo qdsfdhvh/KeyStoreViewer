@@ -1,6 +1,7 @@
 package ui.screen
 
 import android.content.pm.PackageInfo
+import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
@@ -20,7 +21,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -29,6 +29,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -37,8 +38,9 @@ import kotlinx.coroutines.withContext
 import okio.ByteString
 import ui.component.navigator.LocalNavigator
 import ui.component.navigator.Screen
+import ui.widget.AppListItem
+import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
-import ui.widget.rememberPackageName
 import util.getAppInfo
 import util.getSignatures
 import java.io.ByteArrayInputStream
@@ -86,8 +88,12 @@ class SignatureDetailScreen(
             .padding(innerPadding)
             .fillMaxSize(),
         ) {
-          Surface {
-            ListItem(
+          Surface(
+            shape = MaterialTheme.shapes.medium,
+            tonalElevation = 1.dp,
+            modifier = Modifier.padding(horizontal = 16.dp),
+          ) {
+            AppListItem(
               leadingContent = {
                 val icon by rememberPackageIcon(packageInfo, context)
                 icon?.let {
@@ -101,17 +107,42 @@ class SignatureDetailScreen(
                 }
               },
               headlineContent = {
-                Text(rememberPackageName(packageInfo))
+                Text(rememberAppName(packageInfo))
               },
               supportingContent = {
                 Text(packageInfo.packageName)
               },
               trailingContent = {
-                Text(
-                  packageInfo.versionName ?: "",
-                  style = MaterialTheme.typography.bodySmall,
-                )
+                Column(Modifier) {
+                  Text(
+                    "version name:",
+                    style = MaterialTheme.typography.labelSmall,
+                  )
+                  Text(
+                    remember {
+                      packageInfo.versionName ?: ""
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                  )
+                  Spacer(Modifier.height(6.dp))
+                  Text(
+                    "version code:",
+                    style = MaterialTheme.typography.labelSmall,
+                  )
+                  Text(
+                    remember {
+                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        packageInfo.longVersionCode
+                      } else {
+                        @Suppress("DEPRECATION")
+                        packageInfo.versionCode
+                      }.toString()
+                    },
+                    style = MaterialTheme.typography.bodySmall,
+                  )
+                }
               },
+              modifier = Modifier.padding(8.dp),
             )
           }
 
@@ -125,7 +156,9 @@ class SignatureDetailScreen(
 
           HorizontalPager(
             pagerState,
-            modifier = Modifier.fillMaxWidth().weight(1f),
+            modifier = Modifier
+              .fillMaxWidth()
+              .weight(1f),
           ) { page ->
             val signature = signatures[page]
 
@@ -160,7 +193,7 @@ class SignatureDetailScreen(
             signatureDataNullable?.let { signatureData ->
               LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = 16.dp),
+                contentPadding = PaddingValues(16.dp),
               ) {
                 item {
                   Text("MD5")

@@ -9,7 +9,9 @@ import android.os.Build
 /**
  * 获取已安装的应用
  */
-fun Context.getAppInfos(): List<PackageInfo> = packageManager.getInstalledPackages(PackageManager.MATCH_UNINSTALLED_PACKAGES)
+fun Context.getAppInfos(
+  flags: Int = PackageManager.MATCH_UNINSTALLED_PACKAGES,
+): List<PackageInfo> = packageManager.getInstalledPackages(flags)
 
 /**
  * 获取已安装的应用

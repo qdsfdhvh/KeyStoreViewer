@@ -14,10 +14,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 @Composable
-fun rememberPackageName(
+fun rememberAppName(
   packageInfo: PackageInfo,
   context: Context = LocalContext.current,
-): String = rememberSaveable {
+): String = rememberSaveable(packageInfo.packageName) {
   packageInfo.applicationInfo.loadLabel(context.packageManager).toString()
 }
 
