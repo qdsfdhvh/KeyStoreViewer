@@ -19,6 +19,11 @@ kotlin {
 
   jvm("desktop")
 
+  @OptIn(ExperimentalKotlinGradlePluginApi::class)
+  compilerOptions {
+    freeCompilerArgs.add("-Xexpect-actual-classes")
+  }
+
   sourceSets {
     val desktopMain by getting
 
