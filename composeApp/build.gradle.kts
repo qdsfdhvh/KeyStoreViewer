@@ -31,6 +31,7 @@ kotlin {
     androidMain.dependencies {
       implementation(compose.preview)
       implementation(libs.androidx.activity.compose)
+      implementation(libs.accompanist.permissions)
     }
     commonMain.dependencies {
       implementation(compose.runtime)
@@ -133,6 +134,12 @@ android {
   dependencies {
     debugImplementation(compose.uiTooling)
   }
+  applicationVariants.all {
+    outputs.all {
+      this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+      outputFileName = "respireclock-$name-$versionName-${gitCommit()}.apk"
+    }
+  }
 }
 
 compose.desktop {
@@ -144,5 +151,17 @@ compose.desktop {
       packageName = "com.seiko.keystoreviewer"
       packageVersion = "1.0.0"
     }
+  }
+}
+
+private fun Project.gitCommit(): String {
+  val isGitDir = rootProject.file(".git").exists()
+  return if (isGitDir) {
+    @Suppress("UnstableApiUsage")
+    providers.exec {
+      commandLine("git", "rev-parse", "--short", "HEAD")
+    }.standardOutput.asText.get().trim()
+  } else {
+    ""
   }
 }

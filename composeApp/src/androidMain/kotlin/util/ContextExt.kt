@@ -1,5 +1,6 @@
 package util
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -7,6 +8,7 @@ import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.net.Uri
 import android.os.Build
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import java.io.File
@@ -19,9 +21,9 @@ fun Context.getAppInfos(
 ): List<PackageInfo> = packageManager.getInstalledPackages(flags)
 
 /**
- * 获取已安装的应用
+ * 获取已安装的应用信息
  */
-fun Context.getAppInfo(packageName: String): PackageInfo =
+fun Context.getAppInfoCompat(packageName: String): PackageInfo =
   packageManager.getPackageInfo(packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES)
 
 /**
@@ -85,4 +87,29 @@ fun Context.getUriForFile(file: File): Uri {
     "${applicationInfo.packageName}.appfileprovider",
     file
   )
+}
+
+/**
+ * 是否有查询所有包名的权限
+ */
+fun Context.hasQueryAllPackagesPermission(): Boolean {
+  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+    ContextCompat.checkSelfPermission(
+      this,
+      Manifest.permission.QUERY_ALL_PACKAGES,
+    ) == PackageManager.PERMISSION_GRANTED
+  } else {
+    true
+  }
+}
+
+/**
+ * 打开系统设置
+ */
+fun Context.startSystemSetting() {
+  val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+  intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+  val uri = Uri.fromParts("package", packageName, null)
+  intent.data = uri
+  startActivity(intent)
 }

@@ -55,7 +55,7 @@ import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
 import util.copyContent
 import util.createShareTempFile
-import util.getAppInfo
+import util.getAppInfoCompat
 import util.getSignatures
 import util.shareFile
 import util.versionCodeCompat
@@ -99,7 +99,7 @@ class SignatureDetailScreen(
       val context = LocalContext.current
       val packageInfoNullable by produceState<PackageInfo?>(null) {
         value = withContext(Dispatchers.IO) {
-          context.getAppInfo(packageName)
+          context.getAppInfoCompat(packageName)
         }
       }
 
@@ -232,7 +232,7 @@ class SignatureDetailScreen(
                 if (signatureByteString == ByteString.EMPTY) {
                   ""
                 } else {
-                  signatureByteString.sha1().toByteArray().toHexString(
+                  signatureByteString.sha256().toByteArray().toHexString(
                     HexFormat {
                       upperCase = isSha256Upper
                       if (isSha256ColonSplit) {
