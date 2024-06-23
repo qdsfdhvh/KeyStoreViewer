@@ -41,7 +41,8 @@ kotlin {
       implementation(compose.materialIconsExtended)
       implementation(compose.components.resources)
       implementation(compose.components.uiToolingPreview)
-      implementation("com.squareup.okio:okio:3.9.0")
+      implementation(libs.bundles.voyager)
+      implementation(libs.okio)
     }
     desktopMain.dependencies {
       implementation(compose.desktop.currentOs)

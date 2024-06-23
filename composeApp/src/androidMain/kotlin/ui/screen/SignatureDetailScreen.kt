@@ -40,11 +40,12 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.screen.Screen
+import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.currentOrThrow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.ByteString
-import ui.component.navigator.LocalNavigator
-import ui.component.navigator.Screen
 import ui.widget.AppListItem
 import ui.widget.HexText
 import ui.widget.MediumIcon
@@ -64,7 +65,7 @@ import java.math.BigInteger
 import java.security.cert.CertificateFactory
 import java.security.interfaces.RSAPublicKey
 
-class SignatureDetailScreen(
+data class SignatureDetailScreen(
   private val packageName: String,
 ) : Screen {
   @OptIn(
@@ -74,7 +75,7 @@ class SignatureDetailScreen(
   )
   @Composable
   override fun Content() {
-    val navigator = LocalNavigator.current
+    val navigator = LocalNavigator.currentOrThrow
 
     Scaffold(
       topBar = {
@@ -106,8 +107,8 @@ class SignatureDetailScreen(
       packageInfoNullable?.let { packageInfo ->
         Column(
           modifier = Modifier
-              .padding(innerPadding)
-              .fillMaxSize(),
+            .padding(innerPadding)
+            .fillMaxSize(),
         ) {
           Surface(
             shape = MaterialTheme.shapes.medium,
@@ -173,8 +174,8 @@ class SignatureDetailScreen(
           HorizontalPager(
             pagerState,
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
+              .fillMaxWidth()
+              .weight(1f),
           ) { page ->
             val signature = signatures[page]
 
