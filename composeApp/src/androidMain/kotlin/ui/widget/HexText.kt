@@ -117,31 +117,6 @@ fun HexText(
   }
 }
 
-@Composable
-private fun SmallIcon(
-  onClick: () -> Unit,
-  imageVector: ImageVector,
-  contentDescription: String?,
-  modifier: Modifier = Modifier,
-  color: Color = MaterialTheme.colorScheme.secondaryContainer,
-  contentColor: Color = contentColorFor(color),
-) {
-  Surface(
-    onClick = onClick,
-    color = color,
-    contentColor = contentColor,
-    shape = CircleShape,
-    modifier = modifier,
-  ) {
-    Icon(
-      imageVector,
-      contentDescription = contentDescription,
-      modifier = Modifier
-        .padding(6.dp)
-        .size(16.dp),
-    )
-  }
-}
 
 @ThemePreviews
 @Composable

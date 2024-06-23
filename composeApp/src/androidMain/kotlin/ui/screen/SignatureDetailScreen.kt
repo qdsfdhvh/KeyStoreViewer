@@ -1,12 +1,14 @@
 package ui.screen
 
 import android.content.pm.PackageInfo
-import android.os.Build
 import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -45,11 +47,16 @@ import ui.component.navigator.LocalNavigator
 import ui.component.navigator.Screen
 import ui.widget.AppListItem
 import ui.widget.HexText
+import ui.widget.MediumIcon
+import ui.widget.icon.rememberIcShare
 import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
 import util.copyContent
+import util.createShareTempFile
 import util.getAppInfo
 import util.getSignatures
+import util.shareFile
+import util.versionCodeCompat
 import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.security.cert.CertificateFactory
@@ -97,8 +104,8 @@ class SignatureDetailScreen(
       packageInfoNullable?.let { packageInfo ->
         Column(
           modifier = Modifier
-            .padding(innerPadding)
-            .fillMaxSize(),
+              .padding(innerPadding)
+              .fillMaxSize(),
         ) {
           Surface(
             shape = MaterialTheme.shapes.medium,
@@ -143,12 +150,7 @@ class SignatureDetailScreen(
                   )
                   Text(
                     remember {
-                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                        packageInfo.longVersionCode
-                      } else {
-                        @Suppress("DEPRECATION")
-                        packageInfo.versionCode
-                      }.toString()
+                      packageInfo.versionCodeCompat.toString()
                     },
                     style = MaterialTheme.typography.bodySmall,
                   )
@@ -169,8 +171,8 @@ class SignatureDetailScreen(
           HorizontalPager(
             pagerState,
             modifier = Modifier
-              .fillMaxWidth()
-              .weight(1f),
+                .fillMaxWidth()
+                .weight(1f),
           ) { page ->
             val signature = signatures[page]
 
@@ -246,7 +248,8 @@ class SignatureDetailScreen(
                 value = withContext(Dispatchers.IO) {
                   runCatching {
                     val certFactory = CertificateFactory.getInstance("X.509")
-                    val cert = certFactory.generateCertificate(ByteArrayInputStream(signatureByteString.toByteArray()))
+                    val cert =
+                      certFactory.generateCertificate(ByteArrayInputStream(signatureByteString.toByteArray()))
 
                     when (val algorithm = cert.publicKey.algorithm) {
                       "RSA" -> (cert.publicKey as RSAPublicKey).modulus
@@ -269,9 +272,64 @@ class SignatureDetailScreen(
             }
 
             LazyColumn(
+              contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
+              verticalArrangement = Arrangement.spacedBy(16.dp),
               modifier = Modifier.fillMaxSize(),
-              contentPadding = PaddingValues(16.dp),
             ) {
+              stickyHeader {
+                Row(
+                  modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(top = 16.dp)
+                    .fillMaxWidth(),
+                ) {
+                  var isShowShareContentDialog by remember { mutableStateOf(false) }
+                  Spacer(Modifier.weight(1f))
+                  MediumIcon(
+                    onClick = { isShowShareContentDialog = true },
+                    imageVector = rememberIcShare(),
+                    contentDescription = "share",
+                  )
+                  if (isShowShareContentDialog) {
+                    val content by produceState("") {
+                      value = withContext(Dispatchers.IO) {
+                        """
+                        |package: $packageName
+                        |name: ${packageInfo.applicationInfo.loadLabel(context.packageManager)}
+                        |version name: ${packageInfo.versionName}
+                        |version code: ${packageInfo.versionCodeCompat}
+                        |
+                        |MD5:
+                        |$md5
+                        |
+                        |SHA1:
+                        |$sha1
+                        |
+                        |SHA256:
+                        |$sha256
+                        |
+                        |Public Key (16):
+                        |$modulusHex
+                        |
+                        |Public Key:
+                        |$modulusString
+                        """.trimMargin()
+                      }
+                    }
+                    if (content.isNotEmpty()) {
+                      ShareContentPreviewDialog(
+                        onDismissRequest = { isShowShareContentDialog = false },
+                        onShareClick = {
+                          isShowShareContentDialog = false
+                          val tempFile = context.createShareTempFile(content)
+                          context.shareFile(tempFile)
+                        },
+                        content = content,
+                      )
+                    }
+                  }
+                }
+              }
               item {
                 HexText(
                   title = "MD5",
@@ -290,9 +348,6 @@ class SignatureDetailScreen(
                     isMd5ColonSplit = !isMd5ColonSplit
                   },
                 )
-              }
-              item {
-                Spacer(Modifier.height(32.dp))
               }
               item {
                 HexText(
@@ -314,9 +369,6 @@ class SignatureDetailScreen(
                 )
               }
               item {
-                Spacer(Modifier.height(32.dp))
-              }
-              item {
                 HexText(
                   title = "SHA256",
                   text = sha256,
@@ -336,9 +388,6 @@ class SignatureDetailScreen(
                 )
               }
               item {
-                Spacer(Modifier.height(32.dp))
-              }
-              item {
                 HexText(
                   title = "Public Key (16)",
                   text = modulusHex,
@@ -346,9 +395,6 @@ class SignatureDetailScreen(
                     context.copyContent(modulusHex)
                   },
                 )
-              }
-              item {
-                Spacer(Modifier.height(32.dp))
               }
               item {
                 HexText(
