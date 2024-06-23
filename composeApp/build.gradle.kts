@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.kotlinMultiplatform)
@@ -68,9 +69,58 @@ android {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
     }
   }
+
+  val debugSignFile = file("debug-signing.properties")
+  val hasDebugSigningProps = debugSignFile.exists()
+  signingConfigs {
+    if (hasDebugSigningProps) {
+      create("debugSign") {
+        val signingProp = Properties()
+        signingProp.load(debugSignFile.inputStream())
+        storeFile = project.file(signingProp.getProperty("storeFile"))
+        storePassword = signingProp.getProperty("storePassword")
+        keyAlias = signingProp.getProperty("keyAlias")
+        keyPassword = signingProp.getProperty("keyPassword")
+        enableV2Signing = true
+        enableV3Signing = true
+        enableV4Signing = true
+      }
+    }
+  }
+
+  val releaseSignFile = file("release-signing.properties")
+  val hasReleaseSigningProps = releaseSignFile.exists()
+  signingConfigs {
+    if (hasReleaseSigningProps) {
+      create("releaseSign") {
+        val signingProp = Properties()
+        signingProp.load(releaseSignFile.inputStream())
+        storeFile = project.file(signingProp.getProperty("storeFile"))
+        storePassword = signingProp.getProperty("storePassword")
+        keyAlias = signingProp.getProperty("keyAlias")
+        keyPassword = signingProp.getProperty("keyPassword")
+        enableV2Signing = true
+        enableV3Signing = true
+        enableV4Signing = true
+      }
+    }
+  }
+
   buildTypes {
-    getByName("release") {
+    getByName("debug") {
+      isDebuggable = true
       isMinifyEnabled = false
+      if (hasDebugSigningProps) {
+        signingConfig = signingConfigs.getByName("debugSign")
+      }
+    }
+    getByName("release") {
+      isDebuggable = false
+      isMinifyEnabled = true
+      isShrinkResources = true
+      if (hasReleaseSigningProps) {
+        signingConfig = signingConfigs.getByName("releaseSign")
+      }
     }
   }
   compileOptions {
