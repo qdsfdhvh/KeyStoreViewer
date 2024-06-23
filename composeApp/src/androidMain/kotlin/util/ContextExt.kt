@@ -81,26 +81,22 @@ fun Context.createShareTempFile(content: String): File {
  * 将本地file转换成用于分享的 uri
  * @param file 文件
  */
-fun Context.getUriForFile(file: File): Uri {
-  return FileProvider.getUriForFile(
-    this,
-    "${applicationInfo.packageName}.appfileprovider",
-    file
-  )
-}
+fun Context.getUriForFile(file: File): Uri = FileProvider.getUriForFile(
+  this,
+  "${applicationInfo.packageName}.appfileprovider",
+  file,
+)
 
 /**
  * 是否有查询所有包名的权限
  */
-fun Context.hasQueryAllPackagesPermission(): Boolean {
-  return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-    ContextCompat.checkSelfPermission(
-      this,
-      Manifest.permission.QUERY_ALL_PACKAGES,
-    ) == PackageManager.PERMISSION_GRANTED
-  } else {
-    true
-  }
+fun Context.hasQueryAllPackagesPermission(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+  ContextCompat.checkSelfPermission(
+    this,
+    Manifest.permission.QUERY_ALL_PACKAGES,
+  ) == PackageManager.PERMISSION_GRANTED
+} else {
+  true
 }
 
 /**

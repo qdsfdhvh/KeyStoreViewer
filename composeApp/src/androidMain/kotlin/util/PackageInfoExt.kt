@@ -2,7 +2,6 @@ package util
 
 import android.content.pm.PackageInfo
 
-
 /**
  * 获取版本号
  */
