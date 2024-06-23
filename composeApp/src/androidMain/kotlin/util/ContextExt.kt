@@ -5,6 +5,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.Signature
 import android.os.Build
+import androidx.core.content.ContextCompat
 
 /**
  * 获取已安装的应用
@@ -31,4 +32,13 @@ fun Context.getSignatures(packageName: String): Array<Signature> = if (Build.VER
   @Suppress("DEPRECATION")
   packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
     .signatures
+}
+
+/**
+ * 复制内容到剪贴板
+ * @param content 内容
+ */
+fun Context.copyContent(content: String) {
+  ContextCompat.getSystemService(this, android.content.ClipboardManager::class.java)
+    ?.setPrimaryClip(android.content.ClipData.newPlainText(null, content))
 }

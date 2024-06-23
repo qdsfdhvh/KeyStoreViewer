@@ -27,9 +27,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -39,18 +44,25 @@ import okio.ByteString
 import ui.component.navigator.LocalNavigator
 import ui.component.navigator.Screen
 import ui.widget.AppListItem
+import ui.widget.HexText
 import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
+import util.copyContent
 import util.getAppInfo
 import util.getSignatures
 import java.io.ByteArrayInputStream
+import java.math.BigInteger
 import java.security.cert.CertificateFactory
 import java.security.interfaces.RSAPublicKey
 
 class SignatureDetailScreen(
   private val packageName: String,
 ) : Screen {
-  @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+  @OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalFoundationApi::class,
+    ExperimentalStdlibApi::class,
+  )
   @Composable
   override fun Content() {
     val navigator = LocalNavigator.current
@@ -162,84 +174,193 @@ class SignatureDetailScreen(
           ) { page ->
             val signature = signatures[page]
 
-            val signatureDataNullable by produceState<SignatureData?>(null, signature) {
+            val signatureByteString by produceState(ByteString.EMPTY) {
               value = withContext(Dispatchers.IO) {
-                val bytes = signature.toByteArray()
-                val byteString = ByteString.of(*bytes)
-
-                val (rsaModuleHex, rsaModule) = runCatching {
-                  val certFactory = CertificateFactory.getInstance("X.509")
-                  val cert = certFactory.generateCertificate(ByteArrayInputStream(bytes))
-
-                  val modulus = when (val algorithm = cert.publicKey.algorithm) {
-                    "RSA" -> (cert.publicKey as RSAPublicKey).modulus
-                    else -> throw NotImplementedError("$algorithm public key not supported")
-                  }
-                  modulus.toString(16) to modulus.toString()
-                }.onFailure {
-                  Log.d("AAA", "public key error:", it)
-                }.getOrElse { "" to "" }
-
-                SignatureData(
-                  md5 = byteString.md5().hex(),
-                  sha1 = byteString.sha1().hex(),
-                  sha256 = byteString.sha256().hex(),
-                  rsaModuleHex = rsaModuleHex,
-                  rsaModule = rsaModule,
-                )
+                ByteString.of(*signature.toByteArray())
               }
             }
 
-            signatureDataNullable?.let { signatureData ->
-              LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-              ) {
-                item {
-                  Text("MD5")
+            var isMd5Upper by rememberSaveable { mutableStateOf(false) }
+            var isMd5ColonSplit by rememberSaveable { mutableStateOf(true) }
+
+            val md5 by remember {
+              derivedStateOf {
+                if (signatureByteString == ByteString.EMPTY) {
+                  ""
+                } else {
+                  signatureByteString.md5().toByteArray().toHexString(
+                    HexFormat {
+                      upperCase = isMd5Upper
+                      if (isMd5ColonSplit) {
+                        bytes.bytesPerGroup = 1
+                        bytes.groupSeparator = ":"
+                      }
+                    },
+                  )
                 }
-                item {
-                  Text(signatureData.md5)
+              }
+            }
+
+            var isSha1Upper by rememberSaveable { mutableStateOf(false) }
+            var isSha1ColonSplit by rememberSaveable { mutableStateOf(true) }
+            val sha1 by remember {
+              derivedStateOf {
+                if (signatureByteString == ByteString.EMPTY) {
+                  ""
+                } else {
+                  signatureByteString.sha1().toByteArray().toHexString(
+                    HexFormat {
+                      upperCase = isSha1Upper
+                      if (isSha1ColonSplit) {
+                        bytes.bytesPerGroup = 1
+                        bytes.groupSeparator = ":"
+                      }
+                    },
+                  )
                 }
-                item {
-                  Spacer(Modifier.height(32.dp))
+              }
+            }
+
+            var isSha256Upper by rememberSaveable { mutableStateOf(false) }
+            var isSha256ColonSplit by rememberSaveable { mutableStateOf(true) }
+            val sha256 by remember {
+              derivedStateOf {
+                if (signatureByteString == ByteString.EMPTY) {
+                  ""
+                } else {
+                  signatureByteString.sha1().toByteArray().toHexString(
+                    HexFormat {
+                      upperCase = isSha256Upper
+                      if (isSha256ColonSplit) {
+                        bytes.bytesPerGroup = 1
+                        bytes.groupSeparator = ":"
+                      }
+                    },
+                  )
                 }
-                item {
-                  Text("SHA1")
+              }
+            }
+
+            val modulus by produceState(BigInteger.ZERO) {
+              snapshotFlow { signatureByteString }.collect {
+                value = withContext(Dispatchers.IO) {
+                  runCatching {
+                    val certFactory = CertificateFactory.getInstance("X.509")
+                    val cert = certFactory.generateCertificate(ByteArrayInputStream(signatureByteString.toByteArray()))
+
+                    when (val algorithm = cert.publicKey.algorithm) {
+                      "RSA" -> (cert.publicKey as RSAPublicKey).modulus
+                      else -> throw NotImplementedError("$algorithm public key not supported")
+                    }
+                  }.getOrElse {
+                    Log.d("SignatureDetailScreen", "public key error:", it)
+                    BigInteger.ZERO
+                  }
                 }
-                item {
-                  Text(signatureData.sha1)
-                }
-                item {
-                  Spacer(Modifier.height(32.dp))
-                }
-                item {
-                  Text("SHA256")
-                }
-                item {
-                  Text(signatureData.sha256)
-                }
-                item {
-                  Spacer(Modifier.height(32.dp))
-                }
-                item {
-                  Text("公钥 16进制")
-                }
-                item {
-                  Text(signatureData.rsaModuleHex)
-                }
-                item {
-                  Spacer(Modifier.height(32.dp))
-                }
-                item {
-                  Text("公钥 10进制")
-                }
-                item {
-                  Text(signatureData.rsaModule)
-                }
-                item {
-                  Spacer(Modifier.height(32.dp))
-                }
+              }
+            }
+
+            val modulusHex by remember {
+              derivedStateOf { modulus.toString(16) }
+            }
+
+            val modulusString by remember {
+              derivedStateOf { modulus.toString() }
+            }
+
+            LazyColumn(
+              modifier = Modifier.fillMaxSize(),
+              contentPadding = PaddingValues(16.dp),
+            ) {
+              item {
+                HexText(
+                  title = "MD5",
+                  text = md5,
+                  onCopyContentClick = {
+                    context.copyContent(md5)
+                  },
+                  isShowToggleUpperOrLowCase = true,
+                  isUpperCase = isMd5Upper,
+                  onToggleUpperOrLowCaseClick = {
+                    isMd5Upper = !isMd5Upper
+                  },
+                  isShowColonButton = true,
+                  isColonSplit = isMd5ColonSplit,
+                  onToggleColonSplitClick = {
+                    isMd5ColonSplit = !isMd5ColonSplit
+                  },
+                )
+              }
+              item {
+                Spacer(Modifier.height(32.dp))
+              }
+              item {
+                HexText(
+                  title = "SHA1",
+                  text = sha1,
+                  onCopyContentClick = {
+                    context.copyContent(sha1)
+                  },
+                  isShowToggleUpperOrLowCase = true,
+                  isUpperCase = isSha1Upper,
+                  onToggleUpperOrLowCaseClick = {
+                    isSha1Upper = !isSha1Upper
+                  },
+                  isShowColonButton = true,
+                  isColonSplit = isSha1ColonSplit,
+                  onToggleColonSplitClick = {
+                    isSha1ColonSplit = !isSha1ColonSplit
+                  },
+                )
+              }
+              item {
+                Spacer(Modifier.height(32.dp))
+              }
+              item {
+                HexText(
+                  title = "SHA256",
+                  text = sha256,
+                  onCopyContentClick = {
+                    context.copyContent(sha256)
+                  },
+                  isShowToggleUpperOrLowCase = true,
+                  isUpperCase = isSha256Upper,
+                  onToggleUpperOrLowCaseClick = {
+                    isSha256Upper = !isSha256Upper
+                  },
+                  isShowColonButton = true,
+                  isColonSplit = isSha256ColonSplit,
+                  onToggleColonSplitClick = {
+                    isSha256ColonSplit = !isSha256ColonSplit
+                  },
+                )
+              }
+              item {
+                Spacer(Modifier.height(32.dp))
+              }
+              item {
+                HexText(
+                  title = "Public Key (16)",
+                  text = modulusHex,
+                  onCopyContentClick = {
+                    context.copyContent(modulusHex)
+                  },
+                )
+              }
+              item {
+                Spacer(Modifier.height(32.dp))
+              }
+              item {
+                HexText(
+                  title = "Public Key",
+                  text = modulusString,
+                  onCopyContentClick = {
+                    context.copyContent(modulusString)
+                  },
+                )
+              }
+              item {
+                Spacer(Modifier.height(32.dp))
               }
             }
           }
@@ -247,6 +368,12 @@ class SignatureDetailScreen(
       }
     }
   }
+}
+
+@OptIn(ExperimentalStdlibApi::class)
+private val hexFormat = HexFormat {
+  bytes.bytesPerGroup = 1
+  bytes.groupSeparator = ":"
 }
 
 private class SignatureData(
