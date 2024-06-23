@@ -48,6 +48,8 @@ import ui.component.navigator.Screen
 import ui.widget.AppListItem
 import ui.widget.HexText
 import ui.widget.MediumIcon
+import ui.widget.icon.rememberIcALowerCase
+import ui.widget.icon.rememberIcAUpperCase
 import ui.widget.icon.rememberIcShare
 import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
@@ -284,12 +286,43 @@ class SignatureDetailScreen(
                     .fillMaxWidth(),
                 ) {
                   var isShowShareContentDialog by remember { mutableStateOf(false) }
+                  val isAllUpper by remember {
+                    derivedStateOf {
+                      isMd5Upper && isSha1Upper && isSha256Upper
+                    }
+                  }
+
                   Spacer(Modifier.weight(1f))
+                  MediumIcon(
+                    onClick = {
+                      if (isAllUpper) {
+                        isMd5Upper = false
+                        isSha1Upper = false
+                        isSha256Upper = false
+                      } else {
+                        isMd5Upper = true
+                        isSha1Upper = true
+                        isSha256Upper = true
+                      }
+                    },
+                    imageVector = if (isAllUpper) {
+                      rememberIcAUpperCase()
+                    } else {
+                      rememberIcALowerCase()
+                    },
+                    contentDescription = "toggle upper or lower case",
+                    color = if (isAllUpper) {
+                      MaterialTheme.colorScheme.primary
+                    } else {
+                      MaterialTheme.colorScheme.secondaryContainer
+                    },
+                  )
                   MediumIcon(
                     onClick = { isShowShareContentDialog = true },
                     imageVector = rememberIcShare(),
                     contentDescription = "share",
                   )
+
                   if (isShowShareContentDialog) {
                     val content by produceState("") {
                       value = withContext(Dispatchers.IO) {
