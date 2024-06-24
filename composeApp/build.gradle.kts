@@ -43,6 +43,7 @@ kotlin {
       implementation(compose.components.uiToolingPreview)
       implementation(libs.bundles.voyager)
       implementation(libs.okio)
+      implementation(libs.material.kolor)
     }
     desktopMain.dependencies {
       implementation(compose.desktop.currentOs)

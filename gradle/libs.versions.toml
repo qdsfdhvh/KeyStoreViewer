@@ -35,6 +35,7 @@ voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", vers
 
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 okio = { module = "com.squareup.okio:okio", version = "3.9.0" }
+material-kolor = { module = "com.materialkolor:material-kolor", version = "1.7.0" }
 
 [bundles]
 voyager = [
