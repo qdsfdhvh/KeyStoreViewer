@@ -32,7 +32,7 @@ voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.
 voyager-screenModel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
 
-
+molecule-runtime = { module = "app.cash.molecule:molecule-runtime", version = "1.4.3" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 okio = { module = "com.squareup.okio:okio", version = "3.9.0" }
 material-kolor = { module = "com.materialkolor:material-kolor", version = "1.7.0" }

@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.Color
 import com.materialkolor.PaletteStyle
 import com.materialkolor.rememberDynamicColorScheme
 
-
 private val seedColor = Color(0xFFF1A53A)
 
 @Composable

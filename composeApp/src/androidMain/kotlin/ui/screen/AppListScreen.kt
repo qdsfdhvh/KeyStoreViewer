@@ -2,11 +2,11 @@ package ui.screen
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageInfo
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -25,28 +26,26 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import data.model.AppInfoEntry
+import ui.component.state.UiState
 import ui.widget.AppListItem
 import ui.widget.PermissionRequestContent
-import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
-import util.getAppInfos
 
 object AppListScreen : Screen {
   private fun readResolve(): Any = AppListScreen
@@ -64,14 +63,28 @@ object AppListScreen : Screen {
             }
           }
         },
-        modifier = Modifier.padding(innerPadding).fillMaxSize(),
+        modifier = Modifier
+          .padding(innerPadding)
+          .fillMaxSize(),
         label = "应用需要读取程序列表，请授予读取应用程序列表权限。",
       ) {
+        val state by rememberScreenModel {
+          AppListScreenModel(context.applicationContext)
+        }.state.collectAsState()
         AppListContent(
           innerPadding = innerPadding,
+          state = state,
           context = context,
-          onItemClick = { packageName ->
-            navigator.push(SignatureDetailScreen(packageName))
+          onEvent = { event ->
+            when (event) {
+              is AppListScreenEvent.OnItemClick -> {
+                navigator.push(SignatureDetailScreen(event.packageName))
+              }
+
+              else -> {
+                state.eventSink(event)
+              }
+            }
           },
         )
       }
@@ -83,36 +96,18 @@ object AppListScreen : Screen {
 @Composable
 private fun AppListContent(
   innerPadding: PaddingValues,
-  onItemClick: (String) -> Unit,
+  state: AppListScreenState,
+  onEvent: (AppListScreenEvent) -> Unit,
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  var query by rememberSaveable { mutableStateOf("") }
-  val packages by produceState(emptyList()) {
-    value = withContext(Dispatchers.IO) {
-      context.getAppInfos()
-    }
-  }
-  val displayPackages by remember {
-    derivedStateOf {
-      if (query.isNotEmpty()) {
-        packages.filter {
-          it.packageName.contains(query, ignoreCase = true) ||
-            it.applicationInfo.loadLabel(context.packageManager).contains(query, ignoreCase = true)
-        }
-      } else {
-        packages
-      }
-    }
-  }
-
   LazyColumn(
     verticalArrangement = Arrangement.spacedBy(8.dp),
     modifier = modifier,
     contentPadding = PaddingValues(horizontal = 16.dp),
   ) {
     stickyHeader {
-      var changeQuery by remember { mutableStateOf(TextFieldValue(query)) }
+      var changeQuery by remember { mutableStateOf(TextFieldValue(state.query)) }
       OutlinedTextField(
         value = changeQuery,
         onValueChange = { changeQuery = it },
@@ -128,10 +123,10 @@ private fun AppListContent(
         ),
         keyboardActions = KeyboardActions(
           onSearch = {
-            query = changeQuery.text
+            onEvent(AppListScreenEvent.OnQueryChanged(changeQuery.text))
           },
           onDone = {
-            query = changeQuery.text
+            onEvent(AppListScreenEvent.OnQueryChanged(changeQuery.text))
           },
         ),
         modifier = Modifier
@@ -142,24 +137,38 @@ private fun AppListContent(
     item {
       Spacer(Modifier.height(8.dp))
     }
-    items(
-      displayPackages,
-      key = { it.packageName },
-    ) { appInfo ->
-      AppItem(
-        item = appInfo,
-        onClick = {
-          onItemClick(appInfo.packageName)
-        },
-        context = context,
-      )
+    when (val uiState = state.displayPackages) {
+      UiState.Loading -> {
+        item {
+          Box(
+            modifier = Modifier.fillMaxWidth().height(500.dp),
+            contentAlignment = Alignment.Center,
+          ) {
+            CircularProgressIndicator()
+          }
+        }
+      }
+      is UiState.Loaded -> {
+        items(
+          uiState.data,
+          key = { it.packageName },
+        ) { appInfo ->
+          AppItem(
+            item = appInfo,
+            onClick = {
+              onEvent(AppListScreenEvent.OnItemClick(appInfo.packageName))
+            },
+            context = context,
+          )
+        }
+      }
     }
   }
 }
 
 @Composable
 private fun AppItem(
-  item: PackageInfo,
+  item: AppInfoEntry,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
@@ -184,7 +193,7 @@ private fun AppItem(
         }
       },
       headlineContent = {
-        Text(rememberAppName(item))
+        Text(item.name)
       },
       supportingContent = {
         Text(item.packageName)

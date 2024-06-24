@@ -42,6 +42,7 @@ kotlin {
       implementation(compose.components.resources)
       implementation(compose.components.uiToolingPreview)
       implementation(libs.bundles.voyager)
+      implementation(libs.molecule.runtime)
       implementation(libs.okio)
       implementation(libs.material.kolor)
     }
