@@ -21,26 +21,20 @@ fun Context.getAppInfos(
 ): List<PackageInfo> = packageManager.getInstalledPackages(flags)
 
 /**
- * 获取已安装的应用信息
- */
-fun Context.getAppInfoCompat(packageName: String): PackageInfo =
-  packageManager.getPackageInfo(packageName, PackageManager.MATCH_UNINSTALLED_PACKAGES)
-
-/**
  * 返回对应包的签名信息
  * @param packageName 包名
  * @return
  */
 fun Context.getSignatures(packageName: String): Array<Signature> =
   if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-    packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-      .signingInfo
-      .apkContentsSigners
+    packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+      ?.signingInfo
+      ?.apkContentsSigners
   } else {
     @Suppress("DEPRECATION")
-    packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES)
-      .signatures
-  }
+    packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNATURES)
+      ?.signatures
+  } ?: emptyArray()
 
 /**
  * 复制内容到剪贴板

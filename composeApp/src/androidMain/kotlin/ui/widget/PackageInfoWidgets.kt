@@ -13,6 +13,7 @@ import androidx.core.graphics.drawable.toBitmapOrNull
 import data.model.AppInfoEntry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import util.getPackageInfoCompat
 
 @Composable
 fun rememberAppName(
@@ -40,8 +41,8 @@ fun rememberPackageIcon(
   context: Context = LocalContext.current,
 ): State<ImageBitmap?> = produceState<ImageBitmap?>(null, appInfo, context) {
   value = withContext(Dispatchers.IO) {
-    context.packageManager.getPackageInfo(appInfo.packageName, 0)
-      .applicationInfo.loadIcon(context.packageManager)
+    context.packageManager.getPackageInfoCompat(appInfo.packageName, 0)
+      ?.applicationInfo?.loadIcon(context.packageManager)
       ?.toBitmapOrNull()
       ?.asImageBitmap()
   }
