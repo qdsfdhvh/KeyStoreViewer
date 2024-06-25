@@ -56,7 +56,7 @@ import ui.widget.rememberAppName
 import ui.widget.rememberPackageIcon
 import util.copyContent
 import util.createShareTempFile
-import util.getAppInfoCompat
+import util.getPackageInfoCompat
 import util.getSignatures
 import util.shareFile
 import util.versionCodeCompat
@@ -100,7 +100,7 @@ data class SignatureDetailScreen(
       val context = LocalContext.current
       val packageInfoNullable by produceState<PackageInfo?>(null) {
         value = withContext(Dispatchers.IO) {
-          context.getAppInfoCompat(packageName)
+          context.packageManager.getPackageInfoCompat(packageName)
         }
       }
 

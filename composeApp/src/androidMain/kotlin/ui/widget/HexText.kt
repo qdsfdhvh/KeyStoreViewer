@@ -65,7 +65,11 @@ fun HexText(
             SmallIcon(
               onClick = onToggleColonSplitClick,
               imageVector = rememberIcColon(),
-              contentDescription = "show colon",
+              contentDescription = if (isColonSplit) {
+                "hide colon $title"
+              } else {
+                "show colon $title"
+              },
               color = if (isColonSplit) {
                 MaterialTheme.colorScheme.primary
               } else {
