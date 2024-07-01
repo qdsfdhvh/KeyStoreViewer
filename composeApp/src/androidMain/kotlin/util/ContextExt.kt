@@ -3,6 +3,7 @@ package util
 import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.pm.Signature
@@ -14,11 +15,18 @@ import androidx.core.content.FileProvider
 import java.io.File
 
 /**
- * 获取已安装的应用
+ * 获取用户安装的应用
  */
-fun Context.getAppInfos(
-  flags: Int = PackageManager.MATCH_UNINSTALLED_PACKAGES,
-): List<PackageInfo> = packageManager.getInstalledPackages(flags)
+fun Context.getUserInstalledAppInfos(): List<PackageInfo> = packageManager.getInstalledPackages(0).filterNot {
+  it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+}
+
+/**
+ * 获取系统应用
+ */
+fun Context.getSystemAppInfos(): List<PackageInfo> = packageManager.getInstalledPackages(0).filter {
+  it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+}
 
 /**
  * 返回对应包的签名信息
@@ -49,12 +57,12 @@ fun Context.copyContent(content: String) {
  * 分享文件
  * @param file 文件
  */
-fun Context.shareFile(file: File) {
+fun Context.shareFile(file: File, type: String = "text/plain") {
   val intent = Intent()
   intent.setAction(Intent.ACTION_SEND)
   intent.putExtra(Intent.EXTRA_STREAM, getUriForFile(file))
-  intent.setType("*/*")
-  startActivity(Intent.createChooser(intent, "分享文件"))
+  intent.setType(type)
+  startActivity(Intent.createChooser(intent, "Share"))
 }
 
 /**
