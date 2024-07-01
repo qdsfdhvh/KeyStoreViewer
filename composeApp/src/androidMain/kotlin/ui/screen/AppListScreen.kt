@@ -122,7 +122,7 @@ private fun AppListContent(
         unfocusedContainerColor = MaterialTheme.colorScheme.background,
       ),
       keyboardOptions = KeyboardOptions(
-        imeAction = ImeAction.Search,
+        imeAction = ImeAction.Done,
       ),
       modifier = Modifier
         .fillMaxWidth()
