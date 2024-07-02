@@ -172,17 +172,35 @@ private fun AppListContent(
         }
 
         is UiState.Loaded -> {
-          items(
-            uiState.data,
-            key = { it.packageName },
-          ) { appInfo ->
-            AppItem(
-              item = appInfo,
-              onClick = {
-                onEvent(AppListScreenEvent.OnItemClick(appInfo.packageName))
-              },
-              context = context,
-            )
+          if (uiState.data.isNotEmpty()) {
+            items(
+              uiState.data,
+              key = { it.packageName },
+            ) { appInfo ->
+              AppItem(
+                item = appInfo,
+                onClick = {
+                  onEvent(AppListScreenEvent.OnItemClick(appInfo.packageName))
+                },
+                context = context,
+              )
+            }
+          } else {
+            item {
+              Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier
+                  .fillMaxWidth()
+                  .height(500.dp),
+              ) {
+                Text("No apps found")
+                Spacer(Modifier.height(8.dp))
+                Button(onClick = { onEvent(AppListScreenEvent.Refresh) }) {
+                  Text("Refresh")
+                }
+              }
+            }
           }
         }
       }

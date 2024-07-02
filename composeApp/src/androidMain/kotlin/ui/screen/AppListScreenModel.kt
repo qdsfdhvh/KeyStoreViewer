@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -27,8 +28,10 @@ class AppListScreenModel(
   @Composable
   override fun present(): AppListScreenState {
     var query by remember { mutableStateOf(TextFieldValue("")) }
+
+    var refreshKey by remember { mutableIntStateOf(0) }
     var selectAppType by remember { mutableStateOf(AppType.User) }
-    val packages by produceState<UiState<List<AppInfoEntry>>>(UiState.Loading, selectAppType) {
+    val packages by produceState<UiState<List<AppInfoEntry>>>(UiState.Loading, selectAppType, refreshKey) {
       value = UiState.Loading
       value = withContext(Dispatchers.IO) {
         UiState.Loaded(
@@ -67,6 +70,10 @@ class AppListScreenModel(
       displayPackages = displayPackages,
       eventSink = { event ->
         when (event) {
+          AppListScreenEvent.Refresh -> {
+            refreshKey++
+          }
+
           is AppListScreenEvent.OnQueryChanged -> {
             query = event.query
           }
@@ -95,6 +102,7 @@ enum class AppType {
 }
 
 sealed interface AppListScreenEvent {
+  data object Refresh : AppListScreenEvent
   data class OnQueryChanged(val query: TextFieldValue) : AppListScreenEvent
   data class OnAppTypeChanged(val type: AppType) : AppListScreenEvent
   data class OnItemClick(val packageName: String) : AppListScreenEvent
