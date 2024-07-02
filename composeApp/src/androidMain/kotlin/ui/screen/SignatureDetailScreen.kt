@@ -311,7 +311,7 @@ data class SignatureDetailScreen(
                     } else {
                       rememberIcALowerCase()
                     },
-                    contentDescription = "toggle upper or lower case",
+                    contentDescription = "toggle all upper or lower case",
                     color = if (isAllUpper) {
                       MaterialTheme.colorScheme.primary
                     } else {

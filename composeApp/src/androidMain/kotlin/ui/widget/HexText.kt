@@ -87,9 +87,9 @@ fun HexText(
                 rememberIcALowerCase()
               },
               contentDescription = if (isUpperCase) {
-                "show lower case"
+                "show $title lower case"
               } else {
-                "show upper case"
+                "show $title upper case"
               },
               color = if (isUpperCase) {
                 MaterialTheme.colorScheme.primary
@@ -102,7 +102,7 @@ fun HexText(
           SmallIcon(
             onClick = onCopyContentClick,
             imageVector = rememberIcContentCopy(),
-            contentDescription = "copy content",
+            contentDescription = "copy $title content",
           )
         }
         Text(
