@@ -369,7 +369,7 @@ data class SignatureDetailScreen(
                   title = "MD5",
                   text = md5,
                   onCopyContentClick = {
-                    context.copyContent(md5)
+                    context.copyContent(md5, "md5")
                   },
                   isShowToggleUpperOrLowCase = true,
                   isUpperCase = isMd5Upper,
@@ -388,7 +388,7 @@ data class SignatureDetailScreen(
                   title = "SHA1",
                   text = sha1,
                   onCopyContentClick = {
-                    context.copyContent(sha1)
+                    context.copyContent(sha1, "sha1")
                   },
                   isShowToggleUpperOrLowCase = true,
                   isUpperCase = isSha1Upper,
@@ -407,7 +407,7 @@ data class SignatureDetailScreen(
                   title = "SHA256",
                   text = sha256,
                   onCopyContentClick = {
-                    context.copyContent(sha256)
+                    context.copyContent(sha256, "sha256")
                   },
                   isShowToggleUpperOrLowCase = true,
                   isUpperCase = isSha256Upper,
@@ -426,7 +426,7 @@ data class SignatureDetailScreen(
                   title = "Public Key (16)",
                   text = modulusHex,
                   onCopyContentClick = {
-                    context.copyContent(modulusHex)
+                    context.copyContent(modulusHex, "public key (16)")
                   },
                 )
               }
@@ -435,7 +435,7 @@ data class SignatureDetailScreen(
                   title = "Public Key",
                   text = modulusString,
                   onCopyContentClick = {
-                    context.copyContent(modulusString)
+                    context.copyContent(modulusString, "public key")
                   },
                 )
               }
