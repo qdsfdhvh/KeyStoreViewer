@@ -1,6 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 
 plugins {
@@ -11,12 +10,7 @@ plugins {
 }
 
 kotlin {
-  androidTarget {
-    @OptIn(ExperimentalKotlinGradlePluginApi::class)
-    compilerOptions {
-      jvmTarget.set(JvmTarget.JVM_11)
-    }
-  }
+  androidTarget()
 
   jvm("desktop")
 
@@ -50,7 +44,7 @@ kotlin {
       implementation(compose.desktop.currentOs)
     }
   }
-  jvmToolchain(11)
+  jvmToolchain(17)
 }
 
 android {
@@ -128,8 +122,7 @@ android {
     }
   }
   compileOptions {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_17
   }
   buildFeatures {
     compose = true
