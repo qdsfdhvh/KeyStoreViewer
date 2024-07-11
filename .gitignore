@@ -16,8 +16,13 @@ captures
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+# release keystore
 release-signing.properties
 keystore-viewer-release.keystore
+
+# sign keystore to play store
 encryption_public_key.pem
 sign.sh
+pepk.jar
 
