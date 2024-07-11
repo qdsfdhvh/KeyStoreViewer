@@ -17,6 +17,7 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 release-signing.properties
+keystore-viewer-release.keystore
 encryption_public_key.pem
 sign.sh
 
