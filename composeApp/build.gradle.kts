@@ -61,7 +61,11 @@ android {
     targetSdk = libs.versions.android.targetSdk.get().toInt()
     versionCode = 3
     versionName = "1.0.0"
+    ndk {
+      abiFilters.addAll(listOf("arm64-v8a")) // "armeabi-v7a", "x86", "x86_64"
+    }
   }
+
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
