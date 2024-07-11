@@ -1,0 +1,1 @@
+Quickly view MD5, SHA1, SHA256, and public key information for app signatures for filing and more.
