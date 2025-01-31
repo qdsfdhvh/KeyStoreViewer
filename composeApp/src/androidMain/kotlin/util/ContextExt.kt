@@ -36,16 +36,15 @@ fun Context.getSystemAppInfos(): List<PackageInfo> = packageManager.getInstalled
  * @param packageName 包名
  * @return
  */
-fun Context.getSignatures(packageName: String): Array<Signature> =
-  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-    packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-      ?.signingInfo
-      ?.apkContentsSigners
-  } else {
-    @Suppress("DEPRECATION")
-    packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNATURES)
-      ?.signatures
-  } ?: emptyArray()
+fun Context.getSignatures(packageName: String): Array<Signature> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+  packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+    ?.signingInfo
+    ?.apkContentsSigners
+} else {
+  @Suppress("DEPRECATION")
+  packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNATURES)
+    ?.signatures
+} ?: emptyArray()
 
 /**
  * 复制内容到剪贴板

@@ -15,9 +15,10 @@ fun AppTheme(
   content: @Composable () -> Unit,
 ) {
   val colorScheme = rememberDynamicColorScheme(
-    seedColor = seedColor,
+    primary = seedColor,
     isDark = darkTheme,
     style = PaletteStyle.Content,
+    isAmoled = false,
   )
   MaterialTheme(
     colorScheme = colorScheme,

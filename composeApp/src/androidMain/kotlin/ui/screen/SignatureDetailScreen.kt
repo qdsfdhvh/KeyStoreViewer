@@ -91,7 +91,7 @@ data class SignatureDetailScreen(
             }
           },
           title = {
-            Text("详情")
+            Text("Detail")
           },
         )
       },
@@ -449,17 +449,3 @@ data class SignatureDetailScreen(
     }
   }
 }
-
-@OptIn(ExperimentalStdlibApi::class)
-private val hexFormat = HexFormat {
-  bytes.bytesPerGroup = 1
-  bytes.groupSeparator = ":"
-}
-
-private class SignatureData(
-  val md5: String,
-  val sha1: String,
-  val sha256: String,
-  val rsaModuleHex: String,
-  val rsaModule: String,
-)

@@ -70,7 +70,7 @@ object AppListScreen : Screen {
         modifier = Modifier
           .padding(innerPadding)
           .fillMaxSize(),
-        label = "应用需要读取程序列表，请授予读取应用程序列表权限。",
+        label = "The application needs to access the program list, please grant permission to read the application list.",
       ) {
         val state by rememberScreenModel {
           AppListScreenModel(context.applicationContext)
@@ -229,14 +229,9 @@ private fun SelectButton(
     border = if (selected) {
       null
     } else {
-      ButtonDefaults.outlinedButtonBorder
+      ButtonDefaults.outlinedButtonBorder(true)
     },
   ) {
-    // Checkbox(
-    //   checked = selected,
-    //   onCheckedChange = null,
-    // )
-    // Spacer(Modifier.width(8.dp))
     Text(text)
   }
 }

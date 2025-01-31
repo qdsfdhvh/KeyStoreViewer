@@ -49,7 +49,7 @@ fun PermissionRequestContent(
           }
         },
       ) {
-        Text("请求权限")
+        Text("Request")
       }
     }
   }

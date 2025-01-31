@@ -11,22 +11,17 @@ plugins {
 
 kotlin {
   androidTarget()
-
   jvm("desktop")
 
   @OptIn(ExperimentalKotlinGradlePluginApi::class)
-  compilerOptions {
-    freeCompilerArgs.add("-Xexpect-actual-classes")
+  applyHierarchyTemplate {
+    common {
+      withJvm()
+      withAndroidTarget()
+    }
   }
 
   sourceSets {
-    val desktopMain by getting
-
-    androidMain.dependencies {
-      implementation(compose.preview)
-      implementation(libs.androidx.activity.compose)
-      implementation(libs.accompanist.permissions)
-    }
     commonMain.dependencies {
       implementation(compose.runtime)
       implementation(compose.ui)
@@ -40,10 +35,22 @@ kotlin {
       implementation(libs.okio)
       implementation(libs.material.kolor)
     }
+    androidMain.dependencies {
+      implementation(compose.preview)
+      implementation(libs.androidx.core.ktx)
+      implementation(libs.androidx.activity.compose)
+      implementation(libs.accompanist.permissions)
+    }
+    val desktopMain by getting
     desktopMain.dependencies {
       implementation(compose.desktop.currentOs)
     }
   }
+
+  compilerOptions {
+    freeCompilerArgs.add("-Xexpect-actual-classes")
+  }
+
   jvmToolchain(17)
 }
 
