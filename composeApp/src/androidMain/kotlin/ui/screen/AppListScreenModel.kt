@@ -11,7 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.text.input.TextFieldValue
-import data.model.AppInfoEntry
+import data.model.UiAppInfo
 import data.model.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -31,7 +31,7 @@ class AppListScreenModel(
 
     var refreshKey by remember { mutableIntStateOf(0) }
     var selectAppType by remember { mutableStateOf(AppType.User) }
-    val packages by produceState<UiState<List<AppInfoEntry>>>(UiState.Loading, selectAppType, refreshKey) {
+    val packages by produceState<UiState<List<UiAppInfo>>>(UiState.Loading, selectAppType, refreshKey) {
       value = UiState.Loading
       value = withContext(Dispatchers.IO) {
         UiState.Loaded(
@@ -39,7 +39,7 @@ class AppListScreenModel(
             AppType.User -> applicationContext.getUserInstalledAppInfos()
             AppType.System -> applicationContext.getSystemAppInfos()
           }.map {
-            AppInfoEntry.from(it, applicationContext)
+            UiAppInfo.from(applicationContext, it)
           }.sortedByDescending {
             it.lastUpdateTime
           },
@@ -92,7 +92,7 @@ class AppListScreenModel(
 data class AppListScreenState(
   val query: TextFieldValue,
   val appType: AppType,
-  val displayPackages: UiState<List<AppInfoEntry>>,
+  val displayPackages: UiState<List<UiAppInfo>>,
   val eventSink: (AppListScreenEvent) -> Unit,
 )
 

@@ -1,16 +1,12 @@
 package util
 
-import android.Manifest
 import android.content.ClipData.newPlainText
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
-import android.content.pm.PackageManager
-import android.content.pm.Signature
 import android.net.Uri
-import android.os.Build
 import android.provider.Settings
 import android.util.Log
 import androidx.core.content.ContextCompat
@@ -21,30 +17,30 @@ import java.io.File
  * 获取用户安装的应用
  */
 fun Context.getUserInstalledAppInfos(): List<PackageInfo> = packageManager.getInstalledPackages(0).filterNot {
-  it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+  (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0
 }
 
 /**
  * 获取系统应用
  */
 fun Context.getSystemAppInfos(): List<PackageInfo> = packageManager.getInstalledPackages(0).filter {
-  it.applicationInfo.flags and ApplicationInfo.FLAG_SYSTEM != 0
+  (it.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0
 }
 
-/**
- * 返回对应包的签名信息
- * @param packageName 包名
- * @return
- */
-fun Context.getSignatures(packageName: String): Array<Signature> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-  packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
-    ?.signingInfo
-    ?.apkContentsSigners
-} else {
-  @Suppress("DEPRECATION")
-  packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNATURES)
-    ?.signatures
-} ?: emptyArray()
+// /**
+// * 返回对应包的签名信息
+// * @param packageName 包名
+// * @return
+// */
+// fun Context.getSignatures(packageName: String): Array<Signature> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+//  packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNING_CERTIFICATES)
+//    ?.signingInfo
+//    ?.apkContentsSigners
+// } else {
+//  @Suppress("DEPRECATION")
+//  packageManager.getPackageInfoCompat(packageName, PackageManager.GET_SIGNATURES)
+//    ?.signatures
+// } ?: emptyArray()
 
 /**
  * 复制内容到剪贴板
@@ -82,6 +78,7 @@ fun Context.createShareTempFile(content: String): File {
   }
   return File.createTempFile("share", ".txt", parentDir).apply {
     writeText(content)
+    deleteOnExit()
   }
 }
 
@@ -95,17 +92,17 @@ fun Context.getUriForFile(file: File): Uri = FileProvider.getUriForFile(
   file,
 )
 
-/**
- * 是否有查询所有包名的权限
- */
-fun Context.hasQueryAllPackagesPermission(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-  ContextCompat.checkSelfPermission(
-    this,
-    Manifest.permission.QUERY_ALL_PACKAGES,
-  ) == PackageManager.PERMISSION_GRANTED
-} else {
-  true
-}
+// /**
+// * 是否有查询所有包名的权限
+// */
+// fun Context.hasQueryAllPackagesPermission(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//  ContextCompat.checkSelfPermission(
+//    this,
+//    Manifest.permission.QUERY_ALL_PACKAGES,
+//  ) == PackageManager.PERMISSION_GRANTED
+// } else {
+//  true
+// }
 
 /**
  * 打开系统设置

@@ -1,6 +1,9 @@
-package util
+package platform
 
 import android.content.Context
+import util.copyContent
+import util.createShareTempFile
+import util.shareFile
 
 actual class ContentHandler(
   private val context: Context,

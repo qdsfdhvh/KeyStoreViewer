@@ -16,7 +16,7 @@ fun rememberApkDocument(): ImageVector = remember {
     defaultWidth = 40.dp,
     defaultHeight = 40.dp,
     viewportWidth = 960f,
-    viewportHeight = 960f
+    viewportHeight = 960f,
   ).apply {
     path(
       fill = SolidColor(Color.Black),
@@ -27,7 +27,7 @@ fun rememberApkDocument(): ImageVector = remember {
       strokeLineCap = StrokeCap.Butt,
       strokeLineJoin = StrokeJoin.Miter,
       strokeLineMiter = 1.0f,
-      pathFillType = PathFillType.NonZero
+      pathFillType = PathFillType.NonZero,
     ) {
       moveTo(280f, 760f)
       horizontalLineToRelative(400f)

@@ -1,4 +1,7 @@
 package data.model
 
-class AppSignature {
+interface AppSignature {
+  val byteArray: ByteArray
+
+  companion object
 }
