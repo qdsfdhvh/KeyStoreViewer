@@ -26,3 +26,6 @@ encryption_public_key.pem
 sign.sh
 pepk.jar
 
+
+# pi session artifacts
+.pi/

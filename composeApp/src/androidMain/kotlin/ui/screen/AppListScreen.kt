@@ -3,6 +3,8 @@ package ui.screen
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +24,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -32,7 +36,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,12 +48,17 @@ import cafe.adriel.voyager.core.model.rememberScreenModel
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
-import data.model.AppInfoEntry
+import data.model.SignSource
+import data.model.UiAppInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import rememberApkDocument
 import ui.component.state.UiState
 import ui.theme.AppTheme
 import ui.widget.AppListItem
 import ui.widget.PermissionRequestContent
-import ui.widget.rememberPackageIcon
+import util.getFilePathFromUri
 
 object AppListScreen : Screen {
   private fun readResolve(): Any = AppListScreen
@@ -58,7 +67,43 @@ object AppListScreen : Screen {
   override fun Content() {
     val navigator = LocalNavigator.currentOrThrow
     val context = LocalContext.current
-    Scaffold { innerPadding ->
+
+    val scope = rememberCoroutineScope()
+
+    val launcher = rememberLauncherForActivityResult(
+      remember { ActivityResultContracts.GetContent() },
+    ) { uri ->
+      if (uri != null) {
+        scope.launch {
+          val filePath = withContext(Dispatchers.IO) {
+            getFilePathFromUri(context, uri)
+          }
+          if (filePath != null) {
+            navigator.push(
+              SignatureDetailScreen(
+                signSource = SignSource.Apk(filePath),
+              ),
+            )
+          }
+        }
+      }
+    }
+
+    Scaffold(
+      floatingActionButton = {
+        FloatingActionButton(
+          onClick = {
+            // *.apk
+            launcher.launch("application/vnd.android.package-archive")
+          },
+        ) {
+          Icon(
+            rememberApkDocument(),
+            contentDescription = null,
+          )
+        }
+      },
+    ) { innerPadding ->
       PermissionRequestContent(
         permissions = remember {
           buildList {
@@ -82,7 +127,11 @@ object AppListScreen : Screen {
           onEvent = { event ->
             when (event) {
               is AppListScreenEvent.OnItemClick -> {
-                navigator.push(SignatureDetailScreen(event.packageName))
+                navigator.push(
+                  SignatureDetailScreen(
+                    signSource = SignSource.PackageName(event.packageName),
+                  ),
+                )
               }
 
               else -> {
@@ -238,7 +287,7 @@ private fun SelectButton(
 
 @Composable
 private fun AppItem(
-  item: AppInfoEntry,
+  item: UiAppInfo,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
@@ -251,8 +300,7 @@ private fun AppItem(
   ) {
     AppListItem(
       leadingContent = {
-        val icon by rememberPackageIcon(item, context)
-        icon?.let {
+        item.icon?.let {
           Image(
             it,
             contentDescription = null,
@@ -285,15 +333,21 @@ private fun AppListContentPreview() {
           appType = AppType.User,
           displayPackages = UiState.Loaded(
             data = listOf(
-              AppInfoEntry(
+              UiAppInfo(
                 name = "App1",
                 packageName = "com.example.app1",
+                versionCode = 0,
+                versionName = "",
                 lastUpdateTime = 0,
+                icon = null,
               ),
-              AppInfoEntry(
+              UiAppInfo(
                 name = "App2",
                 packageName = "com.example.app2",
+                versionCode = 0,
+                versionName = "",
                 lastUpdateTime = 0,
+                icon = null,
               ),
             ),
           ),
