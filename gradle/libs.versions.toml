@@ -1,8 +1,8 @@
 [versions]
-agp = "8.8.0"
-android-compileSdk = "35"
+agp = "9.4.0"
+android-compileSdk = "37"
 android-minSdk = "24"
-android-targetSdk = "35"
+android-targetSdk = "37"
 compose-plugin = "1.7.3"
 kotlin = "2.1.0"
 spotless = "7.0.2"
