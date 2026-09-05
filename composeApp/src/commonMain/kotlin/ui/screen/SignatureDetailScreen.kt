@@ -329,7 +329,7 @@ data class SignatureDetailScreen(
                       value = withContext(Dispatchers.IO) {
                         """
                         |package: $packageName
-                        |name: ${packageInfo.applicationInfo.loadLabel(context.packageManager)}
+                        |name: ${packageInfo.applicationInfo?.loadLabel(context.packageManager)}
                         |version name: ${packageInfo.versionName}
                         |version code: ${packageInfo.versionCodeCompat}
                         |
