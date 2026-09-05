@@ -53,6 +53,7 @@ class AppListScreenModel(
       ) { query, packages ->
         when (packages) {
           UiState.Loading -> UiState.Loading
+
           is UiState.Loaded -> {
             UiState.Loaded(
               packages.data.filter {

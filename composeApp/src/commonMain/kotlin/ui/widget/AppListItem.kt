@@ -54,6 +54,7 @@ fun AppListItem(
           }
         }
       }
+
       styledOverLineText != null -> {
         Column(Modifier.weight(1f)) {
           styledOverLineText()
@@ -61,6 +62,7 @@ fun AppListItem(
           styledText.invoke()
         }
       }
+
       else -> {
         Box(Modifier.weight(1f)) {
           styledText.invoke()
