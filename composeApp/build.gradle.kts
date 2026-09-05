@@ -67,7 +67,7 @@ android {
     applicationId = "com.seiko.keystoreviewer"
     minSdk = libs.versions.android.minSdk.get().toInt()
     targetSdk = libs.versions.android.targetSdk.get().toInt()
-    versionCode = 3
+    versionCode = 4
     versionName = "1.0.0"
     ndk {
       abiFilters.addAll(listOf("arm64-v8a")) // "armeabi-v7a", "x86", "x86_64"
