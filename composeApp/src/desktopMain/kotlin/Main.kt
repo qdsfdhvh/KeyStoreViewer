@@ -1,8 +1,10 @@
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import cafe.adriel.voyager.navigator.Navigator
-import cafe.adriel.voyager.transitions.SlideTransition
-import ui.screen.DropUploadScreen
+import data.model.SignSource
+import ui.screen.DropUploadContent
+import ui.screen.SignatureDetailScreen
 import ui.theme.AppTheme
 
 fun main() = application {
@@ -11,9 +13,28 @@ fun main() = application {
     title = "KeyStoreViewer",
   ) {
     AppTheme {
-      Navigator(DropUploadScreen) { navigator ->
-        SlideTransition(navigator)
+      val stack = remember { mutableStateListOf<DesktopPage>(DesktopPage.Upload) }
+
+      when (val page = stack.last()) {
+        DesktopPage.Upload -> DropUploadContent(
+          onNavigateToDetail = { path ->
+            stack.add(DesktopPage.SignatureDetail(SignSource.Apk(path)))
+          },
+        )
+
+        is DesktopPage.SignatureDetail -> SignatureDetailScreen(
+          signSource = page.signSource,
+          onBack = {
+            stack.removeAt(stack.lastIndex)
+          },
+        )
       }
     }
   }
+}
+
+sealed interface DesktopPage {
+  data object Upload : DesktopPage
+
+  data class SignatureDetail(val signSource: SignSource) : DesktopPage
 }

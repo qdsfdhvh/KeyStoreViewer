@@ -44,10 +44,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.model.rememberScreenModel
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import data.model.SignSource
 import data.model.UiAppInfo
 import kotlinx.coroutines.Dispatchers
@@ -60,87 +56,74 @@ import ui.widget.AppListItem
 import ui.widget.PermissionRequestContent
 import util.getFilePathFromUri
 
-object AppListScreen : Screen {
-  private fun readResolve(): Any = AppListScreen
+@Composable
+fun AppListScreen(onItemClick: (SignSource) -> Unit) {
+  val context = LocalContext.current
 
-  @Composable
-  override fun Content() {
-    val navigator = LocalNavigator.currentOrThrow
-    val context = LocalContext.current
+  val scope = rememberCoroutineScope()
 
-    val scope = rememberCoroutineScope()
-
-    val launcher = rememberLauncherForActivityResult(
-      remember { ActivityResultContracts.GetContent() },
-    ) { uri ->
-      if (uri != null) {
-        scope.launch {
-          val filePath = withContext(Dispatchers.IO) {
-            getFilePathFromUri(context, uri)
-          }
-          if (filePath != null) {
-            navigator.push(
-              SignatureDetailScreen(
-                signSource = SignSource.Apk(filePath),
-              ),
-            )
-          }
+  val launcher = rememberLauncherForActivityResult(
+    remember { ActivityResultContracts.GetContent() },
+  ) { uri ->
+    if (uri != null) {
+      scope.launch {
+        val filePath = withContext(Dispatchers.IO) {
+          getFilePathFromUri(context, uri)
+        }
+        if (filePath != null) {
+          onItemClick(SignSource.Apk(filePath))
         }
       }
     }
+  }
 
-    Scaffold(
-      floatingActionButton = {
-        FloatingActionButton(
-          onClick = {
-            // *.apk
-            launcher.launch("application/vnd.android.package-archive")
-          },
-        ) {
-          Icon(
-            rememberApkDocument(),
-            contentDescription = null,
-          )
+  Scaffold(
+    floatingActionButton = {
+      FloatingActionButton(
+        onClick = {
+          // *.apk
+          launcher.launch("application/vnd.android.package-archive")
+        },
+      ) {
+        Icon(
+          rememberApkDocument(),
+          contentDescription = null,
+        )
+      }
+    },
+  ) { innerPadding ->
+    PermissionRequestContent(
+      permissions = remember {
+        buildList {
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            add(Manifest.permission.QUERY_ALL_PACKAGES)
+          }
         }
       },
-    ) { innerPadding ->
-      PermissionRequestContent(
-        permissions = remember {
-          buildList {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-              add(Manifest.permission.QUERY_ALL_PACKAGES)
+      modifier = Modifier
+        .padding(innerPadding)
+        .fillMaxSize(),
+      label = "The application needs to access the program list, please grant permission to read the application list.",
+    ) {
+      val state by remember {
+        AppListScreenModel(context.applicationContext)
+      }.state.collectAsState()
+      AppListContent(
+        innerPadding = innerPadding,
+        state = state,
+        context = context,
+        onEvent = { event ->
+          when (event) {
+            is AppListScreenEvent.OnItemClick -> {
+              onItemClick(SignSource.PackageName(event.packageName))
+            }
+
+            else -> {
+              state.eventSink(event)
             }
           }
         },
-        modifier = Modifier
-          .padding(innerPadding)
-          .fillMaxSize(),
-        label = "The application needs to access the program list, please grant permission to read the application list.",
-      ) {
-        val state by rememberScreenModel {
-          AppListScreenModel(context.applicationContext)
-        }.state.collectAsState()
-        AppListContent(
-          innerPadding = innerPadding,
-          state = state,
-          context = context,
-          onEvent = { event ->
-            when (event) {
-              is AppListScreenEvent.OnItemClick -> {
-                navigator.push(
-                  SignatureDetailScreen(
-                    signSource = SignSource.PackageName(event.packageName),
-                  ),
-                )
-              }
-
-              else -> {
-                state.eventSink(event)
-              }
-            }
-          },
-        )
-      }
+      )
     }
   }
 }

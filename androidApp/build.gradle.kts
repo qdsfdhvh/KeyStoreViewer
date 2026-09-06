@@ -5,6 +5,7 @@ import java.util.Properties
 plugins {
   alias(libs.plugins.androidApplication)
   id("org.jetbrains.kotlin.plugin.compose")
+  id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -96,6 +97,9 @@ kotlin {
 dependencies {
   implementation(projects.composeApp)
   implementation(libs.androidx.activity.compose)
+  implementation(libs.navigation3.runtime)
+  implementation(libs.navigation3.ui)
+  implementation(libs.androidx.navigationevent.compose)
   debugImplementation(libs.compose.ui.tooling)
 }
 

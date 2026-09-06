@@ -17,8 +17,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import ui.component.MoleculeScreenModel
 import ui.component.state.UiState
-import ui.component.voyager.MoleculeScreenModel
 import util.getSystemAppInfos
 import util.getUserInstalledAppInfos
 
