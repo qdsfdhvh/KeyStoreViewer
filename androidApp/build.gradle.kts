@@ -29,14 +29,23 @@ android {
     }
   }
 
-  val debugSignFile = file("debug-signing.properties")
+  // Signing materials live outside this repository; point to them via
+  // `signing.dir` in local.properties or the KEYSTORE_VIEWER_SIGNING_DIR env var.
+  val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+  }
+  val signingDir = localProperties.getProperty("signing.dir")
+    ?: System.getenv("KEYSTORE_VIEWER_SIGNING_DIR")
+    ?: file("signing").path
+
+  val debugSignFile = File(signingDir, "debug-signing.properties")
   val hasDebugSigningProps = debugSignFile.exists()
   signingConfigs {
     if (hasDebugSigningProps) {
       create("debugSign") {
         val signingProp = Properties()
         signingProp.load(debugSignFile.inputStream())
-        storeFile = project.file(signingProp.getProperty("storeFile"))
+        storeFile = File(signingDir, signingProp.getProperty("storeFile"))
         storePassword = signingProp.getProperty("storePassword")
         keyAlias = signingProp.getProperty("keyAlias")
         keyPassword = signingProp.getProperty("keyPassword")
@@ -47,14 +56,14 @@ android {
     }
   }
 
-  val releaseSignFile = file("release-signing.properties")
+  val releaseSignFile = File(signingDir, "release-signing.properties")
   val hasReleaseSigningProps = releaseSignFile.exists()
   signingConfigs {
     if (hasReleaseSigningProps) {
       create("releaseSign") {
         val signingProp = Properties()
         signingProp.load(releaseSignFile.inputStream())
-        storeFile = project.file(signingProp.getProperty("storeFile"))
+        storeFile = File(signingDir, signingProp.getProperty("storeFile"))
         storePassword = signingProp.getProperty("storePassword")
         keyAlias = signingProp.getProperty("keyAlias")
         keyPassword = signingProp.getProperty("keyPassword")
