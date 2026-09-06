@@ -17,9 +17,10 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 
-# release keystore
-release-signing.properties
-keystore-viewer-release.keystore
+# signing materials (kept outside the repository, see androidApp/build.gradle.kts)
+*-signing.properties
+*.jks
+*.keystore
 
 # sign keystore to play store
 encryption_public_key.pem
