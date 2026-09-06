@@ -4,6 +4,7 @@ platform :android do
   desc 'Upload the release AAB to Google Play (internal track by default)'
   lane :play_upload do
     supply(
+      package_name: ENV.fetch('PACKAGE_NAME', 'com.seiko.keystoreviewer'),
       json_key: ENV.fetch('PLAY_SERVICE_ACCOUNT_JSON'),
       aab: ENV.fetch('AAB_PATH'),
       track: ENV.fetch('PLAY_TRACK', 'internal'),
