@@ -30,3 +30,6 @@ pepk.jar
 
 # pi session artifacts
 .pi/
+
+# local planning docs
+.planning/
