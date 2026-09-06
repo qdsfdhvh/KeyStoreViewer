@@ -1,5 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-
 plugins {
   alias(libs.plugins.kotlinMultiplatform)
   id("com.android.kotlin.multiplatform.library")
@@ -38,10 +36,6 @@ kotlin {
       implementation(libs.molecule.runtime)
       implementation(libs.androidx.navigationevent.compose)
     }
-    val desktopMain by getting
-    desktopMain.dependencies {
-      implementation(compose.desktop.currentOs)
-    }
   }
 
   compilerOptions {
@@ -49,16 +43,4 @@ kotlin {
   }
 
   jvmToolchain(17)
-}
-
-compose.desktop {
-  application {
-    mainClass = "MainKt"
-
-    nativeDistributions {
-      targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-      packageName = "com.seiko.keystoreviewer"
-      packageVersion = "1.0.0"
-    }
-  }
 }
