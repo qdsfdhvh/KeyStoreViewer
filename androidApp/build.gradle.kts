@@ -12,6 +12,15 @@ android {
   namespace = "com.seiko.keystoreviewer"
   compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+  val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+  }
+  // AdMob App ID:本地经 local.properties(admob.appId),CI 经 ADMOB_APP_ID secret,
+  // 缺失时回退 Google 官方测试 ID,永不入 git
+  val admobAppId = localProperties.getProperty("admob.appId")
+    ?: System.getenv("ADMOB_APP_ID")
+    ?: "ca-app-pub-3940256099942544~3347511713"
+
   defaultConfig {
     applicationId = "com.seiko.keystoreviewer"
     minSdk = libs.versions.android.minSdk.get().toInt()
@@ -30,6 +39,7 @@ android {
     }
     create("play") {
       dimension = "store"
+      manifestPlaceholders["admobAppId"] = admobAppId
     }
   }
 
@@ -41,9 +51,6 @@ android {
 
   // Signing materials live outside this repository; point to them via
   // `signing.dir` in local.properties or the KEYSTORE_VIEWER_SIGNING_DIR env var.
-  val localProperties = Properties().apply {
-    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
-  }
   val signingDir = localProperties.getProperty("signing.dir")
     ?: System.getenv("KEYSTORE_VIEWER_SIGNING_DIR")
     ?: file("signing").path
