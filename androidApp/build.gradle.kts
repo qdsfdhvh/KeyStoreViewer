@@ -95,7 +95,7 @@ kotlin {
 }
 
 dependencies {
-  implementation(projects.composeApp)
+  implementation(projects.shared)
   implementation(libs.androidx.activity.compose)
   implementation(libs.navigation3.runtime)
   implementation(libs.navigation3.ui)
