@@ -23,6 +23,7 @@ import com.seiko.keystoreviewer.ui.motion3.motion3TransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3SceneDecoratorStrategy
 import data.model.SignSource
+import kotlinx.serialization.Serializable
 import platform.ContentHandler
 import platform.LocalContentHandler
 import ui.screen.AppListScreen
@@ -46,8 +47,10 @@ class MainActivity : ComponentActivity() {
   }
 }
 
+@Serializable
 data object AppList : NavKey
 
+@Serializable
 data class SignatureDetail(val signSource: SignSource) : NavKey
 
 @Composable
