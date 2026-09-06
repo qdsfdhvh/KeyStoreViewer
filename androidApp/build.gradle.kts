@@ -98,6 +98,7 @@ dependencies {
   implementation(libs.androidx.activity.compose)
   implementation(libs.navigation3.runtime)
   implementation(libs.navigation3.ui)
+  implementation(libs.androidx.navigationevent.compose)
   debugImplementation(libs.compose.ui.tooling)
 }
 

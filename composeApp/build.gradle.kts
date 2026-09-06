@@ -35,6 +35,7 @@ kotlin {
       implementation(libs.androidx.activity.compose)
       implementation(libs.accompanist.permissions)
       implementation(libs.molecule.runtime)
+      implementation(libs.androidx.navigationevent.compose)
     }
     val desktopMain by getting
     desktopMain.dependencies {
