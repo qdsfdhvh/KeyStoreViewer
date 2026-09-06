@@ -7,7 +7,7 @@ compose-plugin = "1.12.0"
 kotlin = "2.4.10"
 spotless = "8.10.2"
 ktlint = "1.8.0"
-voyager = "2.2.21-1.10.3"
+navigation3 = "1.2.0-beta01"
 
 [libraries]
 junit = { group = "junit", name = "junit", version = "4.13.2" }
@@ -21,21 +21,13 @@ kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.
 
 compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-plugin" }
 
-voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
-voyager-screenModel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
-voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
+navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
+navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
 molecule-runtime = { module = "app.cash.molecule:molecule-runtime", version = "2.2.0" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version = "0.37.3" }
 okio = { module = "com.squareup.okio:okio", version = "3.18.2" }
 material-kolor = { module = "com.materialkolor:material-kolor", version = "5.0.1" }
-
-[bundles]
-voyager = [
-    "voyager-navigator",
-    "voyager-screenModel",
-    "voyager-transitions",
-]
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

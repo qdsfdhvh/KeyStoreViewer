@@ -27,34 +27,12 @@ import androidx.compose.ui.draganddrop.DragData
 import androidx.compose.ui.draganddrop.dragData
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import data.model.SignSource
 import kotlinx.coroutines.launch
 import java.net.URI
 import kotlin.io.path.exists
 import kotlin.io.path.fileSize
 import kotlin.io.path.toPath
-
-object DropUploadScreen : Screen {
-
-  private fun readResolve(): Any = DropUploadScreen
-
-  @Composable
-  override fun Content() {
-    val navigator = LocalNavigator.currentOrThrow
-    DropUploadContent(
-      onNavigateToDetail = {
-        navigator.push(
-          SignatureDetailScreen(
-            SignSource.Apk(it),
-          ),
-        )
-      },
-    )
-  }
-}
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable

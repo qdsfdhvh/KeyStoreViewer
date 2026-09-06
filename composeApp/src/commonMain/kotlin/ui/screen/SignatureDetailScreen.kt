@@ -40,9 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
-import cafe.adriel.voyager.navigator.LocalNavigator
-import cafe.adriel.voyager.navigator.currentOrThrow
 import data.model.AppSignature
 import data.model.SignSource
 import data.model.UiAppInfo
@@ -62,26 +59,27 @@ import java.math.BigInteger
 import java.security.cert.CertificateFactory
 import java.security.interfaces.RSAPublicKey
 
-data class SignatureDetailScreen(
-  private val signSource: SignSource,
-) : Screen {
-  @Composable
-  override fun Content() {
-    val navigator = LocalNavigator.currentOrThrow
-    val contentHandler = LocalContentHandler.current
-    SignatureDetailScreen(
-      onBack = {
-        navigator.pop()
-      },
-      signSource = signSource,
-      onShareContentClick = { content ->
-        contentHandler.shareContent(content)
-      },
-      onCopyContentClick = { content, label ->
-        contentHandler.copyToClipboard(content, label)
-      },
-    )
-  }
+@OptIn(
+  ExperimentalMaterial3Api::class,
+  ExperimentalFoundationApi::class,
+  ExperimentalStdlibApi::class,
+)
+@Composable
+fun SignatureDetailScreen(
+  signSource: SignSource,
+  onBack: () -> Unit,
+) {
+  val contentHandler = LocalContentHandler.current
+  SignatureDetailScreen(
+    onBack = onBack,
+    signSource = signSource,
+    onShareContentClick = { content ->
+      contentHandler.shareContent(content)
+    },
+    onCopyContentClick = { content, label ->
+      contentHandler.copyToClipboard(content, label)
+    },
+  )
 }
 
 @OptIn(

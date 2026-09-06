@@ -25,9 +25,7 @@ kotlin {
       implementation(compose.materialIconsExtended)
       implementation(compose.components.resources)
       implementation(compose.components.uiToolingPreview)
-      api(libs.bundles.voyager)
       implementation(libs.kotlinx.io)
-      implementation(libs.molecule.runtime)
       implementation(libs.okio)
       implementation(libs.material.kolor)
     }
@@ -36,6 +34,7 @@ kotlin {
       implementation(libs.androidx.core.ktx)
       implementation(libs.androidx.activity.compose)
       implementation(libs.accompanist.permissions)
+      implementation(libs.molecule.runtime)
     }
     val desktopMain by getting
     desktopMain.dependencies {
