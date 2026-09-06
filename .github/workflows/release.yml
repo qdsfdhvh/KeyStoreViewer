@@ -26,6 +26,7 @@ jobs:
       KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
       PLAY_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
       PLAY_TRACK: ${{ vars.PLAY_TRACK || 'internal' }}
+      ADMOB_APP_ID: ${{ secrets.ADMOB_APP_ID }}
     steps:
       - uses: actions/checkout@v4
 
