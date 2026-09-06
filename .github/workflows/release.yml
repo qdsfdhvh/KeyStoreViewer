@@ -1,0 +1,97 @@
+name: Release
+
+# Tag-driven release (push a `vX.Y.Z` tag):
+#   1. Build the signed release APK and AAB (signing materials come from secrets).
+#   2. Publish the APK to a GitHub Release (external distribution; this is also
+#      what F-Droid's tag-based update check observes — F-Droid builds from
+#      source on their own infrastructure, there is no developer upload API).
+#   3. If PLAY_SERVICE_ACCOUNT_JSON_B64 is configured, upload the AAB to
+#      Google Play via fastlane supply (internal track by default).
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      KEYSTORE_B64: ${{ secrets.KEYSTORE_B64 }}
+      KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+      KEYSTORE_KEY_PASSWORD: ${{ secrets.KEYSTORE_KEY_PASSWORD }}
+      KEYSTORE_ALIAS: ${{ secrets.KEYSTORE_ALIAS }}
+      PLAY_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON_B64 }}
+      PLAY_TRACK: ${{ vars.PLAY_TRACK || 'internal' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify tag matches versionName
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version="$(sed -n 's/.*versionName = "\(.*\)"/\1/p' androidApp/build.gradle.kts)"
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match versionName v$version."
+            exit 1
+          fi
+
+      - name: Prepare signing materials
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::error::Missing signing secrets. Configure KEYSTORE_B64, KEYSTORE_PASSWORD and KEYSTORE_KEY_PASSWORD (see README, Release section)."
+            exit 1
+          fi
+          dir="$RUNNER_TEMP/signing"
+          mkdir -p "$dir"
+          echo "$KEYSTORE_B64" | base64 --decode > "$dir/keystore-viewer-release.keystore"
+          cat > "$dir/release-signing.properties" <<PROPS
+          storeFile=keystore-viewer-release.keystore
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=${KEYSTORE_ALIAS:-KeyStoreViewer}
+          keyPassword=$KEYSTORE_KEY_PASSWORD
+          PROPS
+          echo "signing.dir=$dir" >> local.properties
+
+      - name: Build artifacts
+        run: ./gradlew :androidApp:renameReleaseApk :androidApp:bundleRelease
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: androidApp/build/outputs/apk-named/release/*.apk
+
+      - name: Decode Play service account
+        if: env.PLAY_SERVICE_ACCOUNT_JSON_B64 != ''
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          echo "$PLAY_SERVICE_ACCOUNT_JSON_B64" | base64 --decode > "$RUNNER_TEMP/play-service-account.json"
+
+      - uses: ruby/setup-ruby@v1
+        if: env.PLAY_SERVICE_ACCOUNT_JSON_B64 != ''
+        with:
+          ruby-version: '3.3'
+
+      - name: Upload to Google Play
+        if: env.PLAY_SERVICE_ACCOUNT_JSON_B64 != ''
+        working-directory: fastlane
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ runner.temp }}/play-service-account.json
+          AAB_PATH: ${{ github.workspace }}/androidApp/build/outputs/bundle/release/androidApp-release.aab
+        run: |
+          bundle install
+          bundle exec fastlane android play_upload
