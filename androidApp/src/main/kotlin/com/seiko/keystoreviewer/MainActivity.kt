@@ -15,6 +15,7 @@ import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.scene.rememberNavigationEventState
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
+import com.seiko.keystoreviewer.ads.Ads
 import com.seiko.keystoreviewer.ui.motion3.Motion3BackHandler
 import com.seiko.keystoreviewer.ui.motion3.motion3Metadata
 import com.seiko.keystoreviewer.ui.motion3.motion3PopTransitionSpec
@@ -26,6 +27,7 @@ import data.model.SignSource
 import kotlinx.serialization.Serializable
 import platform.ContentHandler
 import platform.LocalContentHandler
+import platform.ads.LocalAdSlot
 import ui.screen.AppListScreen
 import ui.screen.SignatureDetailScreen
 import ui.theme.AppTheme
@@ -35,10 +37,12 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     val contentHandler = ContentHandler(applicationContext)
+    Ads.initialize(applicationContext)
     setContent {
       AppTheme {
         CompositionLocalProvider(
           LocalContentHandler provides contentHandler,
+          LocalAdSlot provides Ads.slot(),
         ) {
           KeyStoreViewerApp()
         }

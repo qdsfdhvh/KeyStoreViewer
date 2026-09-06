@@ -23,6 +23,16 @@ android {
     }
   }
 
+  flavorDimensions += "store"
+  productFlavors {
+    create("foss") {
+      dimension = "store"
+    }
+    create("play") {
+      dimension = "store"
+    }
+  }
+
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -105,6 +115,7 @@ kotlin {
 
 dependencies {
   implementation(projects.shared)
+  "playImplementation"(libs.play.services.ads)
   implementation(libs.androidx.activity.compose)
   implementation(libs.navigation3.runtime)
   implementation(libs.navigation3.ui)
@@ -121,13 +132,15 @@ val gitCommit: String =
     ""
   }
 
-fun renameApkTask(variant: String) = tasks.register<Copy>("rename${variant.replaceFirstChar { it.uppercase() }}Apk") {
-  dependsOn("assemble${variant.replaceFirstChar { it.uppercase() }}")
-  from(layout.buildDirectory.dir("outputs/apk/${variant.lowercase()}"))
-  include("*.apk")
-  into(layout.buildDirectory.dir("outputs/apk-named/${variant.lowercase()}"))
-  rename { "keystoreviewer-${variant.lowercase()}-${android.defaultConfig.versionName}-$gitCommit.apk" }
+listOf("foss", "play").forEach { flavor ->
+  listOf("Debug", "Release").forEach { variant ->
+    val variantName = flavor.replaceFirstChar { it.uppercase() } + variant
+    tasks.register<Copy>("rename${variantName}Apk") {
+      dependsOn("assemble$variantName")
+      from(layout.buildDirectory.dir("outputs/apk/${flavor.lowercase()}/${variant.lowercase()}"))
+      include("*.apk")
+      into(layout.buildDirectory.dir("outputs/apk-named/${flavor.lowercase()}/${variant.lowercase()}"))
+      rename { "keystoreviewer-${flavor.lowercase()}-${variant.lowercase()}-${android.defaultConfig.versionName}-$gitCommit.apk" }
+    }
+  }
 }
-
-renameApkTask("debug")
-renameApkTask("release")
