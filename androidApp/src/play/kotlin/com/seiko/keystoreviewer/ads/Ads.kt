@@ -1,12 +1,13 @@
 package com.seiko.keystoreviewer.ads
 
-import android.content.Context
+import android.app.Activity
 import com.google.android.gms.ads.MobileAds
 import platform.ads.AdSlot
 
 object Ads {
-  fun initialize(context: Context) {
-    MobileAds.initialize(context) {}
+  fun initialize(activity: Activity) {
+    AdmobAdSlot.onActivityCreated(activity)
+    MobileAds.initialize(activity) {}
   }
 
   fun slot(): AdSlot = AdmobAdSlot

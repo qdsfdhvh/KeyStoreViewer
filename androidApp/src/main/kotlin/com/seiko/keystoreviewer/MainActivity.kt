@@ -37,7 +37,7 @@ class MainActivity : ComponentActivity() {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     val contentHandler = ContentHandler(applicationContext)
-    Ads.initialize(applicationContext)
+    Ads.initialize(this)
     setContent {
       AppTheme {
         CompositionLocalProvider(

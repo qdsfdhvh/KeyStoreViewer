@@ -20,6 +20,9 @@ android {
   val admobAppId = localProperties.getProperty("admob.appId")
     ?: System.getenv("ADMOB_APP_ID")
     ?: "ca-app-pub-3940256099942544~3347511713"
+  val admobRewardedId = localProperties.getProperty("admob.rewardedId")
+    ?: System.getenv("ADMOB_REWARDED_ID")
+    ?: "ca-app-pub-3940256099942544/5224354917"
 
   defaultConfig {
     applicationId = "com.seiko.keystoreviewer"
@@ -40,6 +43,7 @@ android {
     create("play") {
       dimension = "store"
       manifestPlaceholders["admobAppId"] = admobAppId
+      buildConfigField("String", "ADMOB_REWARDED_ID", "\"$admobRewardedId\"")
     }
   }
 
@@ -113,6 +117,7 @@ android {
   }
   buildFeatures {
     compose = true
+    buildConfig = true
   }
 }
 
