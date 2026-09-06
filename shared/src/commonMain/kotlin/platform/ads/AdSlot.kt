@@ -12,6 +12,13 @@ import androidx.compose.ui.Modifier
  * 广告 SDK 依赖与代码对 foss 构建物理不可见。
  */
 interface AdSlot {
+
+  companion object {
+
+    /** 看一次激励广告获得的导出次数 */
+    const val REWARD_BONUS_COUNT = 2
+  }
+
   @Composable fun Banner(modifier: Modifier = Modifier)
 
   @Composable fun InlineNative(modifier: Modifier = Modifier)
@@ -23,6 +30,9 @@ interface AdSlot {
    * [onResult] 的参数表示用户是否完整看完并获得奖励。
    */
   fun showRewarded(placement: String, onResult: (rewarded: Boolean) -> Unit)
+
+  /** 当前变体是否具备激励广告能力(F-Droid 等无广告构建为 false) */
+  fun canShowRewarded(): Boolean
 }
 
 data object NoAdSlot : AdSlot {
@@ -33,6 +43,8 @@ data object NoAdSlot : AdSlot {
   override fun maybeShowInterstitial(placement: String) = Unit
 
   override fun showRewarded(placement: String, onResult: (rewarded: Boolean) -> Unit) = onResult(false)
+
+  override fun canShowRewarded(): Boolean = false
 }
 
 val LocalAdSlot = staticCompositionLocalOf<AdSlot> { NoAdSlot }

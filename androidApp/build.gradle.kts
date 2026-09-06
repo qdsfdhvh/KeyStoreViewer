@@ -127,6 +127,7 @@ kotlin {
 
 dependencies {
   implementation(projects.shared)
+  implementation(libs.kotlinx.serialization.json)
   "playImplementation"(libs.play.services.ads)
   implementation(libs.androidx.activity.compose)
   implementation(libs.navigation3.runtime)

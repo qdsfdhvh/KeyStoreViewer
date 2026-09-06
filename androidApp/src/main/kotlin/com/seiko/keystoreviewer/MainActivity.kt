@@ -16,6 +16,7 @@ import androidx.navigation3.scene.rememberNavigationEventState
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
 import com.seiko.keystoreviewer.ads.Ads
+import com.seiko.keystoreviewer.ads.ExportQuotaProvider
 import com.seiko.keystoreviewer.ui.motion3.Motion3BackHandler
 import com.seiko.keystoreviewer.ui.motion3.motion3Metadata
 import com.seiko.keystoreviewer.ui.motion3.motion3PopTransitionSpec
@@ -23,12 +24,19 @@ import com.seiko.keystoreviewer.ui.motion3.motion3PredictivePopTransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.motion3TransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3SceneDecoratorStrategy
+import data.local.FileFavoritesRepository
+import data.local.FileHistoryRepository
+import data.local.LocalExportQuota
+import data.local.LocalFavoritesRepository
+import data.local.LocalHistoryRepository
 import data.model.SignSource
 import kotlinx.serialization.Serializable
 import platform.ContentHandler
 import platform.LocalContentHandler
 import platform.ads.LocalAdSlot
 import ui.screen.AppListScreen
+import ui.screen.FavoritesScreen
+import ui.screen.HistoryScreen
 import ui.screen.SignatureDetailScreen
 import ui.theme.AppTheme
 
@@ -43,6 +51,9 @@ class MainActivity : ComponentActivity() {
         CompositionLocalProvider(
           LocalContentHandler provides contentHandler,
           LocalAdSlot provides Ads.slot(),
+          LocalHistoryRepository provides FileHistoryRepository(applicationContext),
+          LocalFavoritesRepository provides FileFavoritesRepository(applicationContext),
+          LocalExportQuota provides ExportQuotaProvider.quota(applicationContext),
         ) {
           KeyStoreViewerApp()
         }
@@ -53,6 +64,12 @@ class MainActivity : ComponentActivity() {
 
 @Serializable
 data object AppList : NavKey
+
+@Serializable
+data object History : NavKey
+
+@Serializable
+data object Favorites : NavKey
 
 @Serializable
 data class SignatureDetail(val signSource: SignSource) : NavKey
@@ -76,6 +93,32 @@ private fun KeyStoreViewerApp() {
         AppListScreen(
           onItemClick = { signSource ->
             backStack.add(SignatureDetail(signSource))
+          },
+          onOpenHistory = {
+            backStack.add(History)
+          },
+          onOpenFavorites = {
+            backStack.add(Favorites)
+          },
+        )
+      }
+      entry<History>(
+        metadata = motion3Metadata(),
+      ) {
+        HistoryScreen(
+          onBack = onBack,
+          onOpen = { packageName ->
+            backStack.add(SignatureDetail(SignSource.PackageName(packageName)))
+          },
+        )
+      }
+      entry<Favorites>(
+        metadata = motion3Metadata(),
+      ) {
+        FavoritesScreen(
+          onBack = onBack,
+          onOpen = { packageName ->
+            backStack.add(SignatureDetail(SignSource.PackageName(packageName)))
           },
         )
       }

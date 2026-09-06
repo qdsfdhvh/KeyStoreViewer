@@ -3,9 +3,12 @@ package ui.screen
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,11 +24,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -35,8 +43,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -44,6 +54,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import data.local.LocalExportQuota
+import data.local.LocalFavoritesRepository
+import data.local.LocalHistoryRepository
 import data.model.SignSource
 import data.model.UiAppInfo
 import kotlinx.coroutines.Dispatchers
@@ -57,7 +70,11 @@ import ui.widget.PermissionRequestContent
 import util.getFilePathFromUri
 
 @Composable
-fun AppListScreen(onItemClick: (SignSource) -> Unit) {
+fun AppListScreen(
+  onItemClick: (SignSource) -> Unit,
+  onOpenHistory: () -> Unit = {},
+  onOpenFavorites: () -> Unit = {},
+) {
   val context = LocalContext.current
 
   val scope = rememberCoroutineScope()
@@ -92,6 +109,10 @@ fun AppListScreen(onItemClick: (SignSource) -> Unit) {
       }
     },
   ) { innerPadding ->
+    var showExportSheet by remember { mutableStateOf(false) }
+    if (showExportSheet) {
+      ExportSheet(onDismiss = { showExportSheet = false })
+    }
     PermissionRequestContent(
       permissions = remember {
         buildList {
@@ -112,6 +133,9 @@ fun AppListScreen(onItemClick: (SignSource) -> Unit) {
         innerPadding = innerPadding,
         state = state,
         context = context,
+        onOpenHistory = onOpenHistory,
+        onOpenFavorites = onOpenFavorites,
+        onExportClick = { showExportSheet = true },
         onEvent = { event ->
           when (event) {
             is AppListScreenEvent.OnItemClick -> {
@@ -133,9 +157,15 @@ private fun AppListContent(
   innerPadding: PaddingValues,
   state: AppListScreenState,
   onEvent: (AppListScreenEvent) -> Unit,
+  onOpenHistory: () -> Unit,
+  onOpenFavorites: () -> Unit,
+  onExportClick: () -> Unit,
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
+  val scope = rememberCoroutineScope()
+  val historyRepository = LocalHistoryRepository.current
+  val favoritesRepository = LocalFavoritesRepository.current
   Column(
     modifier = modifier,
   ) {
@@ -168,6 +198,7 @@ private fun AppListContent(
       modifier = Modifier
         .padding(horizontal = 16.dp)
         .fillMaxWidth(),
+      verticalAlignment = Alignment.CenterVertically,
     ) {
       SelectButton(
         onClick = { onEvent(AppListScreenEvent.OnAppTypeChanged(AppType.User)) },
@@ -175,13 +206,32 @@ private fun AppListContent(
         text = "User",
         modifier = Modifier.weight(1f),
       )
-      Spacer(Modifier.width(16.dp))
+      Spacer(Modifier.width(12.dp))
       SelectButton(
         onClick = { onEvent(AppListScreenEvent.OnAppTypeChanged(AppType.System)) },
         selected = state.appType == AppType.System,
         text = "System",
         modifier = Modifier.weight(1f),
       )
+      Spacer(Modifier.width(12.dp))
+      IconButton(onClick = onExportClick) {
+        Icon(
+          Icons.Filled.FileDownload,
+          contentDescription = "export report",
+        )
+      }
+      IconButton(onClick = onOpenHistory) {
+        Icon(
+          Icons.Filled.History,
+          contentDescription = "history",
+        )
+      }
+      IconButton(onClick = onOpenFavorites) {
+        Icon(
+          Icons.Filled.Star,
+          contentDescription = "favorites",
+        )
+      }
     }
 
     LazyColumn(
@@ -212,7 +262,16 @@ private fun AppListContent(
               AppItem(
                 item = appInfo,
                 onClick = {
+                  scope.launch {
+                    historyRepository.record(appInfo.packageName, appInfo.name)
+                  }
                   onEvent(AppListScreenEvent.OnItemClick(appInfo.packageName))
+                },
+                onLongClick = {
+                  scope.launch {
+                    favoritesRepository.toggle(appInfo.packageName, appInfo.name)
+                  }
+                  Toast.makeText(context, "Favorites updated", Toast.LENGTH_SHORT).show()
                 },
                 context = context,
               )
@@ -268,18 +327,22 @@ private fun SelectButton(
   }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AppItem(
   item: UiAppInfo,
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
+  onLongClick: () -> Unit = {},
 ) {
   Surface(
-    onClick = onClick,
     shape = MaterialTheme.shapes.medium,
     tonalElevation = 1.dp,
-    modifier = modifier,
+    modifier = modifier.combinedClickable(
+      onClick = onClick,
+      onLongClick = onLongClick,
+    ),
   ) {
     AppListItem(
       leadingContent = {
@@ -337,6 +400,9 @@ private fun AppListContentPreview() {
           eventSink = {},
         ),
         onEvent = {},
+        onOpenHistory = {},
+        onOpenFavorites = {},
+        onExportClick = {},
       )
     }
   }

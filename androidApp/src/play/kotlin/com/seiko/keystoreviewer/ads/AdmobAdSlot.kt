@@ -82,6 +82,8 @@ object AdmobAdSlot : AdSlot {
     ad.show(activity) { rewardEarned = true }
   }
 
+  override fun canShowRewarded(): Boolean = true
+
   private fun preloadRewarded() {
     val context = appContext ?: return
     RewardedAd.load(
