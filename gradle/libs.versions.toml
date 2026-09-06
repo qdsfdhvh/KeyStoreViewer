@@ -32,6 +32,7 @@ okio = { module = "com.squareup.okio:okio", version = "3.18.2" }
 material-kolor = { module = "com.materialkolor:material-kolor", version = "5.0.1" }
 
 play-services-ads = { module = "com.google.android.gms:play-services-ads", version = "25.4.0" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
