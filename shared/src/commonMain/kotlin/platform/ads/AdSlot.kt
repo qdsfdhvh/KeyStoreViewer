@@ -17,6 +17,12 @@ interface AdSlot {
   @Composable fun InlineNative(modifier: Modifier = Modifier)
 
   fun maybeShowInterstitial(placement: String)
+
+  /**
+   * 展示激励广告(用户主动触发换解锁功能)。
+   * [onResult] 的参数表示用户是否完整看完并获得奖励。
+   */
+  fun showRewarded(placement: String, onResult: (rewarded: Boolean) -> Unit)
 }
 
 data object NoAdSlot : AdSlot {
@@ -25,6 +31,8 @@ data object NoAdSlot : AdSlot {
   @Composable override fun InlineNative(modifier: Modifier) = Unit
 
   override fun maybeShowInterstitial(placement: String) = Unit
+
+  override fun showRewarded(placement: String, onResult: (rewarded: Boolean) -> Unit) = onResult(false)
 }
 
 val LocalAdSlot = staticCompositionLocalOf<AdSlot> { NoAdSlot }
