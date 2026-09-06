@@ -3,30 +3,32 @@ agp = "9.4.0"
 android-compileSdk = "37"
 android-minSdk = "24"
 android-targetSdk = "37"
-compose-plugin = "1.7.3"
-kotlin = "2.1.0"
-spotless = "7.0.2"
-ktlint = "1.5.0"
-voyager = "1.1.0-beta02"
+compose-plugin = "1.12.0"
+kotlin = "2.4.10"
+spotless = "8.10.2"
+ktlint = "1.8.0"
+voyager = "2.2.21-1.10.3"
 
 [libraries]
 junit = { group = "junit", name = "junit", version = "4.13.2" }
-androidx-test-junit = { group = "androidx.test.ext", name = "junit", version = "1.2.1" }
-androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version = "3.6.1" }
+androidx-test-junit = { group = "androidx.test.ext", name = "junit", version = "1.3.0" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version = "3.7.0" }
 
-androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.15.0" }
-androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.10.0" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version = "1.19.0" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version = "1.13.0" }
 
-kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.6.0" }
+kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.1" }
+
+compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-plugin" }
 
 voyager-navigator = { module = "cafe.adriel.voyager:voyager-navigator", version.ref = "voyager" }
 voyager-screenModel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }
 voyager-transitions = { module = "cafe.adriel.voyager:voyager-transitions", version.ref = "voyager" }
 
-molecule-runtime = { module = "app.cash.molecule:molecule-runtime", version = "1.4.3" }
-accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version = "0.36.0" }
-okio = { module = "com.squareup.okio:okio", version = "3.10.2" }
-material-kolor = { module = "com.materialkolor:material-kolor", version = "2.0.2" }
+molecule-runtime = { module = "app.cash.molecule:molecule-runtime", version = "2.2.0" }
+accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version = "0.37.3" }
+okio = { module = "com.squareup.okio:okio", version = "3.18.2" }
+material-kolor = { module = "com.materialkolor:material-kolor", version = "5.0.1" }
 
 [bundles]
 voyager = [
@@ -38,6 +40,7 @@ voyager = [
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
