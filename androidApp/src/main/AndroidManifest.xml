@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- M4 signature-change monitor: notifications on detected signer changes.
+         Runtime permission on API 33+; denial never crashes (monitor still runs,
+         alerts only shown in-app). -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <permission
         android:name="${applicationId}.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
         android:protectionLevel="signature"

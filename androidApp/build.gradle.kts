@@ -50,6 +50,10 @@ android {
   packaging {
     resources {
       excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      // BouncyCastle (M4 keystore parsing, declared in shared commonMain)
+      // ships as a multi-release jar; keep AGP from failing the merge on its
+      // per-version OSGi metadata (the jar itself still loads on Android).
+      excludes += "META-INF/versions/9/OSGI-INF/MANIFEST.MF"
     }
   }
 

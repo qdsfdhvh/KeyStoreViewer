@@ -34,10 +34,14 @@ import kotlinx.serialization.Serializable
 import platform.ContentHandler
 import platform.LocalContentHandler
 import platform.ads.LocalAdSlot
+import ui.screen.ApkCompareScreen
 import ui.screen.AppListScreen
 import ui.screen.FavoritesScreen
 import ui.screen.HistoryScreen
+import ui.screen.KeystoreBrowserScreen
 import ui.screen.SignatureDetailScreen
+import ui.screen.SignatureMonitorScreen
+import ui.screen.SignatureToolsScreen
 import ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
@@ -72,6 +76,18 @@ data object History : NavKey
 data object Favorites : NavKey
 
 @Serializable
+data object SignatureTools : NavKey
+
+@Serializable
+data object KeystoreBrowser : NavKey
+
+@Serializable
+data object ApkCompare : NavKey
+
+@Serializable
+data object SignatureMonitor : NavKey
+
+@Serializable
 data class SignatureDetail(val signSource: SignSource) : NavKey
 
 @Composable
@@ -100,6 +116,9 @@ private fun KeyStoreViewerApp() {
           onOpenFavorites = {
             backStack.add(Favorites)
           },
+          onOpenSignatureTools = {
+            backStack.add(SignatureTools)
+          },
         )
       }
       entry<History>(
@@ -127,6 +146,43 @@ private fun KeyStoreViewerApp() {
       ) { key ->
         SignatureDetailScreen(
           signSource = key.signSource,
+          onBack = onBack,
+        )
+      }
+      entry<SignatureTools>(
+        metadata = motion3Metadata(),
+      ) {
+        SignatureToolsScreen(
+          onBack = onBack,
+          onOpenKeystoreBrowser = {
+            backStack.add(KeystoreBrowser)
+          },
+          onOpenApkCompare = {
+            backStack.add(ApkCompare)
+          },
+          onOpenSignatureMonitor = {
+            backStack.add(SignatureMonitor)
+          },
+        )
+      }
+      entry<KeystoreBrowser>(
+        metadata = motion3Metadata(),
+      ) {
+        KeystoreBrowserScreen(
+          onBack = onBack,
+        )
+      }
+      entry<ApkCompare>(
+        metadata = motion3Metadata(),
+      ) {
+        ApkCompareScreen(
+          onBack = onBack,
+        )
+      }
+      entry<SignatureMonitor>(
+        metadata = motion3Metadata(),
+      ) {
+        SignatureMonitorScreen(
           onBack = onBack,
         )
       }

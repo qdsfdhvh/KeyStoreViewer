@@ -22,6 +22,13 @@ captures
 *.jks
 *.keystore
 
+# narrowly named SYNTHETIC desktop-test fixtures only (throwaway keytool keys,
+# password ksv-test-pass, no real signing material); the global signing
+# exclusions above stay in force everywhere else
+!shared/src/desktopTest/resources/signature/fixture.jks
+!shared/src/desktopTest/resources/signature/empty.jks
+!shared/src/desktopTest/resources/signature/certsonly.jks
+
 # sign keystore to play store
 encryption_public_key.pem
 sign.sh
