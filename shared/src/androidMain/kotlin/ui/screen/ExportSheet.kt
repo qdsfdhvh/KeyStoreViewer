@@ -50,6 +50,7 @@ fun ExportSheet(
   val adSlot = LocalAdSlot.current
   val scope = rememberCoroutineScope()
   val remaining by quota.remaining.collectAsState(null)
+  val rewardedReady by adSlot.isRewardedReady.collectAsState()
   var offerRewarded by remember { mutableStateOf(false) }
 
   val launcher = rememberLauncherForActivityResult(
@@ -121,7 +122,7 @@ fun ExportSheet(
             }
           }
         },
-        enabled = remaining?.let { it > 0 || adSlot.canShowRewarded() } ?: false,
+        enabled = remaining?.let { it > 0 || (adSlot.canShowRewarded() && rewardedReady) } ?: false,
       ) {
         Text("Export CSV")
       }
@@ -147,6 +148,7 @@ fun ExportSheet(
       },
       confirmButton = {
         TextButton(
+          enabled = rewardedReady,
           onClick = {
             offerRewarded = false
             adSlot.showRewarded("export_report") { rewarded ->
@@ -163,7 +165,7 @@ fun ExportSheet(
             }
           },
         ) {
-          Text("Watch ad")
+          Text(if (rewardedReady) "Watch ad" else "Loading ad…")
         }
       },
       dismissButton = {

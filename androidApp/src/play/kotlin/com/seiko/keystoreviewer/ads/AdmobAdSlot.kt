@@ -15,12 +15,15 @@ import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.seiko.keystoreviewer.BuildConfig
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import platform.ads.AdSlot
 import java.lang.ref.WeakReference
 
 /**
- * M1 阶段 Banner 使用 Google 官方测试 ID;正式 banner/native/interstitial ID 在 M3 接入。
- * Rewarded ID 经 play 变体 BuildConfig 注入(不入 git)。
+ * play 变体唯一广告形式:激励广告(用户主动看广告换导出次数)。
+ * Banner/Native/Interstitial 已在产品决策中移除,保持简单 app 的克制。
  */
 object AdmobAdSlot : AdSlot {
 
@@ -31,10 +34,18 @@ object AdmobAdSlot : AdSlot {
   private var rewardedAd: RewardedAd? = null
   private var rewardEarned = false
 
+  private val rewardedReadyFlow = MutableStateFlow(false)
+  override val isRewardedReady: StateFlow<Boolean> = rewardedReadyFlow.asStateFlow()
+
   fun onActivityCreated(activity: Activity) {
     activityRef = WeakReference(activity)
     appContext = activity.applicationContext
-    MobileAds.initialize(activity) {}
+  }
+
+  /** 在 UMP 同意流程完成后调用 */
+  fun initializeAds() {
+    val context = appContext ?: return
+    MobileAds.initialize(context) {}
     preloadRewarded()
   }
 
@@ -69,12 +80,14 @@ object AdmobAdSlot : AdSlot {
     ad.fullScreenContentCallback = object : FullScreenContentCallback() {
       override fun onAdDismissedFullScreenContent() {
         rewardedAd = null
+        rewardedReadyFlow.value = false
         onResult(rewardEarned)
         preloadRewarded()
       }
 
       override fun onAdFailedToShowFullScreenContent(error: AdError) {
         rewardedAd = null
+        rewardedReadyFlow.value = false
         onResult(false)
         preloadRewarded()
       }
@@ -93,6 +106,7 @@ object AdmobAdSlot : AdSlot {
       object : RewardedAdLoadCallback() {
         override fun onAdLoaded(ad: RewardedAd) {
           rewardedAd = ad
+          rewardedReadyFlow.value = true
         }
       },
     )

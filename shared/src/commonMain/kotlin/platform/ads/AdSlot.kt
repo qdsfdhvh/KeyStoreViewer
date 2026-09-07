@@ -3,6 +3,8 @@ package platform.ads
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * 广告展示能力的抽象。
@@ -33,6 +35,9 @@ interface AdSlot {
 
   /** 当前变体是否具备激励广告能力(F-Droid 等无广告构建为 false) */
   fun canShowRewarded(): Boolean
+
+  /** 激励广告是否已预加载就绪(用于控制按钮可用态) */
+  val isRewardedReady: StateFlow<Boolean>
 }
 
 data object NoAdSlot : AdSlot {
@@ -45,6 +50,8 @@ data object NoAdSlot : AdSlot {
   override fun showRewarded(placement: String, onResult: (rewarded: Boolean) -> Unit) = onResult(false)
 
   override fun canShowRewarded(): Boolean = false
+
+  override val isRewardedReady: StateFlow<Boolean> = MutableStateFlow(false)
 }
 
 val LocalAdSlot = staticCompositionLocalOf<AdSlot> { NoAdSlot }
