@@ -27,6 +27,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -74,6 +75,7 @@ fun AppListScreen(
   onItemClick: (SignSource) -> Unit,
   onOpenHistory: () -> Unit = {},
   onOpenFavorites: () -> Unit = {},
+  onOpenSignatureTools: () -> Unit = {},
 ) {
   val context = LocalContext.current
 
@@ -135,6 +137,7 @@ fun AppListScreen(
         context = context,
         onOpenHistory = onOpenHistory,
         onOpenFavorites = onOpenFavorites,
+        onOpenSignatureTools = onOpenSignatureTools,
         onExportClick = { showExportSheet = true },
         onEvent = { event ->
           when (event) {
@@ -159,6 +162,7 @@ private fun AppListContent(
   onEvent: (AppListScreenEvent) -> Unit,
   onOpenHistory: () -> Unit,
   onOpenFavorites: () -> Unit,
+  onOpenSignatureTools: () -> Unit,
   onExportClick: () -> Unit,
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
@@ -230,6 +234,12 @@ private fun AppListContent(
         Icon(
           Icons.Filled.Star,
           contentDescription = "favorites",
+        )
+      }
+      IconButton(onClick = onOpenSignatureTools) {
+        Icon(
+          Icons.Filled.Security,
+          contentDescription = "signature tools",
         )
       }
     }
@@ -402,6 +412,7 @@ private fun AppListContentPreview() {
         onEvent = {},
         onOpenHistory = {},
         onOpenFavorites = {},
+        onOpenSignatureTools = {},
         onExportClick = {},
       )
     }

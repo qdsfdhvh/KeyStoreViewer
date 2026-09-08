@@ -35,6 +35,9 @@ play-services-ads = { module = "com.google.android.gms:play-services-ads", versi
 user-messaging-platform = { module = "com.google.android.ump:user-messaging-platform", version = "4.0.0" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
 
+work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version = "2.11.2" }
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version = "1.82" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }

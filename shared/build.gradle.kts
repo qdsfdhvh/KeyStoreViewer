@@ -27,6 +27,11 @@ kotlin {
       implementation(libs.kotlinx.io)
       implementation(libs.okio)
       implementation(libs.material.kolor)
+      // Runtime for the M4 @Serializable monitor state (store lives in androidMain).
+      implementation(libs.kotlinx.serialization.json)
+      // M4: vetted FOSS BouncyCastle for JKS/PKCS12 keystore parsing
+      // (Android built-ins have no JKS provider). Both targets are JVM.
+      implementation(libs.bouncycastle.bcprov)
     }
     androidMain.dependencies {
       implementation(compose.preview)
@@ -35,6 +40,12 @@ kotlin {
       implementation(libs.accompanist.permissions)
       implementation(libs.molecule.runtime)
       implementation(libs.androidx.navigationevent.compose)
+      // M4 signature tools: WorkManager-based monitor.
+      implementation(libs.work.runtime.ktx)
+    }
+    val desktopTest by getting
+    desktopTest.dependencies {
+      implementation(libs.junit)
     }
   }
 
