@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +31,7 @@ import com.seiko.keystoreviewer.ui.motion3.motion3PredictivePopTransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.motion3TransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3SceneDecoratorStrategy
+import com.seiko.keystoreviewer.update.StoreUpdatePrompt
 import data.local.FileFavoritesRepository
 import data.local.FileHistoryRepository
 import data.local.LocalExportQuota
@@ -205,7 +207,10 @@ private fun KeyStoreViewerApp() {
   Scaffold(
     contentWindowInsets = WindowInsets(0, 0, 0, 0),
     bottomBar = {
-      RootTabBar(selectedTab) { target -> backStack.selectRoot(AppList, rootDestinations.getValue(target)) }
+      Column {
+        StoreUpdatePrompt()
+        RootTabBar(selectedTab) { target -> backStack.selectRoot(AppList, rootDestinations.getValue(target)) }
+      }
     },
   ) { padding ->
     NavDisplay(

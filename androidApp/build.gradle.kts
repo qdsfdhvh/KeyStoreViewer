@@ -132,6 +132,7 @@ kotlin {
 dependencies {
   implementation(projects.shared)
   implementation(libs.kotlinx.serialization.json)
+  "playImplementation"(libs.play.app.update)
   "playImplementation"(libs.play.services.ads)
   "playImplementation"(libs.user.messaging.platform)
   implementation(libs.androidx.activity.compose)
@@ -139,6 +140,7 @@ dependencies {
   implementation(libs.navigation3.ui)
   implementation(libs.androidx.navigationevent.compose)
   debugImplementation(libs.compose.ui.tooling)
+  testImplementation(libs.junit)
 }
 
 val gitCommit: String =

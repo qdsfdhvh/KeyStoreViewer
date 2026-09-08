@@ -30,6 +30,7 @@ molecule-runtime = { module = "app.cash.molecule:molecule-runtime", version = "2
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version = "0.37.3" }
 okio = { module = "com.squareup.okio:okio", version = "3.18.2" }
 
+play-app-update = { module = "com.google.android.play:app-update", version = "2.1.0" }
 play-services-ads = { module = "com.google.android.gms:play-services-ads", version = "25.4.0" }
 user-messaging-platform = { module = "com.google.android.ump:user-messaging-platform", version = "4.0.0" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version = "1.9.0" }
