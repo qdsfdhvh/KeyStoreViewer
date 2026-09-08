@@ -1,96 +1,86 @@
 package ui.screen
 
-import android.content.pm.PackageInfo
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import data.model.AppSignature
 import data.model.SignSource
 import data.model.UiAppInfo
 import data.model.from
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import okio.ByteString
+import okio.ByteString.Companion.toByteString
 import util.getPackageArchiveInfoCompat
 import util.getPackageInfoCompat
 import util.signaturesCompat
+import java.io.ByteArrayInputStream
+import java.math.BigInteger
+import java.security.cert.CertificateFactory
+import java.security.interfaces.RSAPublicKey
 
 @Composable
 actual fun ExtractSignatureInfo(
   signSource: SignSource,
   content: @Composable ExtractSignatureInfoScope.() -> Unit,
 ) {
-  when (signSource) {
-    is SignSource.PackageName -> ExtractSignatureInfoByPackageName(
-      packageName = signSource.packageName,
-      content = content,
-    )
-
-    is SignSource.Apk -> ExtractSignatureInfoByFilePath(
-      filePath = signSource.filePath,
-      content = content,
-    )
-  }
-}
-
-@Composable
-private fun ExtractSignatureInfoByPackageName(
-  packageName: String,
-  content: @Composable ExtractSignatureInfoScope.() -> Unit,
-) {
   val context = LocalContext.current
-  val packageInfoNullable by produceState<PackageInfo?>(null) {
-    value = withContext(Dispatchers.IO) {
-      context.packageManager.getPackageInfoCompat(packageName)
-    }
+  val loader = remember(context.applicationContext) {
+    PackageManagerSignatureDetailLoader(context.applicationContext)
   }
-  packageInfoNullable?.let { packageInfo ->
-    val appInfo: UiAppInfo = remember { UiAppInfo.from(context, packageInfo) }
-    val signatures: List<AppSignature> by produceState(emptyList()) {
-      value = withContext(Dispatchers.IO) {
-        packageInfo.signaturesCompat.map {
-          AppSignature.from(it)
-        }
-      }
-    }
+  val viewModel = viewModel { SignatureDetailViewModel(signSource, loader) }
+  val data by viewModel.data.collectAsState()
+  data?.let {
     ExtractSignatureInfoScopeImpl(
-      appInfo = appInfo,
-      signatures = signatures,
+      appInfo = it.appInfo,
+      signatures = it.signatures,
     ).content()
   }
 }
 
-@Composable
-private fun ExtractSignatureInfoByFilePath(
-  filePath: String,
-  content: @Composable ExtractSignatureInfoScope.() -> Unit,
-) {
-  val context = LocalContext.current
-  val packageInfoNullable by produceState<PackageInfo?>(null) {
-    value = withContext(Dispatchers.IO) {
-      context.packageManager.getPackageArchiveInfoCompat(filePath)
-    }
+/** Loads package info, signatures, and certificate modulus for the detail screen. */
+class PackageManagerSignatureDetailLoader(
+  private val applicationContext: Context,
+) : SignatureDetailLoader {
+
+  override suspend fun load(signSource: SignSource): SignatureDetailData? = withContext(Dispatchers.IO) {
+    val packageInfo = when (signSource) {
+      is SignSource.PackageName -> applicationContext.packageManager.getPackageInfoCompat(signSource.packageName)
+      is SignSource.Apk -> applicationContext.packageManager.getPackageArchiveInfoCompat(signSource.filePath)
+    } ?: return@withContext null
+    SignatureDetailData(
+      appInfo = UiAppInfo.from(applicationContext, packageInfo),
+      signatures = packageInfo.signaturesCompat.map { signature ->
+        val bytes = AppSignature.from(signature).byteArray.toByteString()
+        val modulus = certificateModulus(bytes)
+        SignatureDetailCertificate(
+          bytes = bytes,
+          modulusHex = modulus.toString(16),
+          modulusString = modulus.toString(),
+        )
+      },
+    )
   }
-  packageInfoNullable?.let { packageInfo ->
-    val appInfo: UiAppInfo = remember { UiAppInfo.from(context, packageInfo) }
-    val signatures: List<AppSignature> by produceState(emptyList()) {
-      value = withContext(Dispatchers.IO) {
-        packageInfo.signaturesCompat.map {
-          AppSignature.from(it)
-        }
-      }
-    }
-    ExtractSignatureInfoScopeImpl(
-      appInfo = appInfo,
-      signatures = signatures,
-    ).content()
+}
+
+private fun certificateModulus(bytes: ByteString): BigInteger = runCatching {
+  val cert = CertificateFactory.getInstance("X.509")
+    .generateCertificate(ByteArrayInputStream(bytes.toByteArray()))
+  when (val algorithm = cert.publicKey.algorithm) {
+    "RSA" -> (cert.publicKey as RSAPublicKey).modulus
+    else -> throw NotImplementedError("$algorithm public key not supported")
   }
+}.getOrElse {
+  BigInteger.ZERO
 }
 
 @Stable
 private class ExtractSignatureInfoScopeImpl(
   override val appInfo: UiAppInfo,
-  override val signatures: List<AppSignature>,
+  override val signatures: List<SignatureDetailCertificate>,
 ) : ExtractSignatureInfoScope

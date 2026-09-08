@@ -21,38 +21,9 @@ import java.io.File
  * ([android.content.pm.PackageManager.getPackageArchiveInfo] with
  * GET_SIGNING_CERTIFICATES, or GET_SIGNATURES below API 28).
  *
- * This extracts certificate metadata only; it performs NO full APK integrity
- * verification (zip entry digest checking is the OS installer's job), and the
- * UI must say so.
+ * Result types are shared in [signature.ApkSignerRead]; only the Android
+ * readers live here.
  */
-sealed interface ApkSignerRead {
-  data class Success(val meta: ApkSignerMeta) : ApkSignerRead
-
-  data class Failure(val error: ApkSignerReadError) : ApkSignerRead
-}
-
-sealed interface ApkSignerReadError {
-  data object MissingFile : ApkSignerReadError
-
-  data object EmptyFile : ApkSignerReadError
-
-  data class TooLarge(val maxBytes: Long) : ApkSignerReadError
-
-  /**
-   * The platform archive API returned no usable result. It cannot distinguish
-   * "unsigned APK" from "corrupted/not an APK" (a null result covers both),
-   * so the wording must not claim a distinct unsigned diagnosis.
-   */
-  data object NotApkOrUnreadable : ApkSignerReadError
-}
-
-data class ApkSignerMeta(
-  val packageName: String,
-  val versionName: String,
-  val versionCode: Long,
-  val signerSha256: Set<String>,
-)
-
 suspend fun readApkSignerMeta(
   context: Context,
   filePath: String?,

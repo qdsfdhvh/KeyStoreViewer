@@ -31,29 +31,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import data.model.AppSignature
 import data.model.SignSource
 import data.model.UiAppInfo
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okio.ByteString
 import platform.LocalContentHandler
 import ui.widget.DetailTopBar
 import ui.widget.HexText
-import java.io.ByteArrayInputStream
-import java.math.BigInteger
-import java.security.cert.CertificateFactory
-import java.security.interfaces.RSAPublicKey
 
 @OptIn(
   ExperimentalMaterial3Api::class,
@@ -117,30 +107,20 @@ private fun SignatureDetailScreen(
         ) { page ->
           val signature = signatures[page]
 
-          val signatureByteString by produceState(ByteString.EMPTY) {
-            value = withContext(Dispatchers.IO) {
-              ByteString.of(*signature.byteArray)
-            }
-          }
-
           var isMd5Upper by rememberSaveable { mutableStateOf(false) }
           var isMd5ColonSplit by rememberSaveable { mutableStateOf(true) }
 
           val md5 by remember {
             derivedStateOf {
-              if (signatureByteString == ByteString.EMPTY) {
-                ""
-              } else {
-                signatureByteString.md5().toByteArray().toHexString(
-                  HexFormat {
-                    upperCase = isMd5Upper
-                    if (isMd5ColonSplit) {
-                      bytes.bytesPerGroup = 1
-                      bytes.groupSeparator = ":"
-                    }
-                  },
-                )
-              }
+              signature.bytes.md5().toByteArray().toHexString(
+                HexFormat {
+                  upperCase = isMd5Upper
+                  if (isMd5ColonSplit) {
+                    bytes.bytesPerGroup = 1
+                    bytes.groupSeparator = ":"
+                  }
+                },
+              )
             }
           }
 
@@ -148,19 +128,15 @@ private fun SignatureDetailScreen(
           var isSha1ColonSplit by rememberSaveable { mutableStateOf(true) }
           val sha1 by remember {
             derivedStateOf {
-              if (signatureByteString == ByteString.EMPTY) {
-                ""
-              } else {
-                signatureByteString.sha1().toByteArray().toHexString(
-                  HexFormat {
-                    upperCase = isSha1Upper
-                    if (isSha1ColonSplit) {
-                      bytes.bytesPerGroup = 1
-                      bytes.groupSeparator = ":"
-                    }
-                  },
-                )
-              }
+              signature.bytes.sha1().toByteArray().toHexString(
+                HexFormat {
+                  upperCase = isSha1Upper
+                  if (isSha1ColonSplit) {
+                    bytes.bytesPerGroup = 1
+                    bytes.groupSeparator = ":"
+                  }
+                },
+              )
             }
           }
 
@@ -168,49 +144,20 @@ private fun SignatureDetailScreen(
           var isSha256ColonSplit by rememberSaveable { mutableStateOf(true) }
           val sha256 by remember {
             derivedStateOf {
-              if (signatureByteString == ByteString.EMPTY) {
-                ""
-              } else {
-                signatureByteString.sha256().toByteArray().toHexString(
-                  HexFormat {
-                    upperCase = isSha256Upper
-                    if (isSha256ColonSplit) {
-                      bytes.bytesPerGroup = 1
-                      bytes.groupSeparator = ":"
-                    }
-                  },
-                )
-              }
-            }
-          }
-
-          val modulus by produceState(BigInteger.ZERO) {
-            snapshotFlow { signatureByteString }.collect {
-              value = withContext(Dispatchers.IO) {
-                runCatching {
-                  val certFactory = CertificateFactory.getInstance("X.509")
-                  val cert =
-                    certFactory.generateCertificate(ByteArrayInputStream(signatureByteString.toByteArray()))
-
-                  when (val algorithm = cert.publicKey.algorithm) {
-                    "RSA" -> (cert.publicKey as RSAPublicKey).modulus
-                    else -> throw NotImplementedError("$algorithm public key not supported")
+              signature.bytes.sha256().toByteArray().toHexString(
+                HexFormat {
+                  upperCase = isSha256Upper
+                  if (isSha256ColonSplit) {
+                    bytes.bytesPerGroup = 1
+                    bytes.groupSeparator = ":"
                   }
-                }.getOrElse {
-//                    Log.d("SignatureDetailScreen", "public key error:", it)
-                  BigInteger.ZERO
-                }
-              }
+                },
+              )
             }
           }
 
-          val modulusHex by remember {
-            derivedStateOf { modulus.toString(16) }
-          }
-
-          val modulusString by remember {
-            derivedStateOf { modulus.toString() }
-          }
+          val modulusHex = signature.modulusHex
+          val modulusString = signature.modulusString
 
           LazyColumn(
             contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp, start = 16.dp, end = 16.dp),
@@ -260,30 +207,28 @@ private fun SignatureDetailScreen(
                 ) { Text("Share") }
 
                 if (isShowShareContentDialog) {
-                  val content by produceState("") {
-                    value = withContext(Dispatchers.IO) {
-                      """
-                        |package: ${appInfo.packageName}
-                        |name: ${appInfo.name}
-                        |version name: ${appInfo.versionName}
-                        |version code: ${appInfo.versionCode}
-                        |
-                        |MD5:
-                        |$md5
-                        |
-                        |SHA1:
-                        |$sha1
-                        |
-                        |SHA256:
-                        |$sha256
-                        |
-                        |Public Key (16):
-                        |$modulusHex
-                        |
-                        |Public Key:
-                        |$modulusString
-                      """.trimMargin()
-                    }
+                  val content = remember(md5, sha1, sha256, modulusHex, modulusString) {
+                    """
+                      |package: ${appInfo.packageName}
+                      |name: ${appInfo.name}
+                      |version name: ${appInfo.versionName}
+                      |version code: ${appInfo.versionCode}
+                      |
+                      |MD5:
+                      |$md5
+                      |
+                      |SHA1:
+                      |$sha1
+                      |
+                      |SHA256:
+                      |$sha256
+                      |
+                      |Public Key (16):
+                      |$modulusHex
+                      |
+                      |Public Key:
+                      |$modulusString
+                    """.trimMargin()
                   }
                   if (content.isNotEmpty()) {
                     ShareContentPreviewDialog(
@@ -419,5 +364,5 @@ expect fun ExtractSignatureInfo(
 
 interface ExtractSignatureInfoScope {
   val appInfo: UiAppInfo
-  val signatures: List<AppSignature>
+  val signatures: List<SignatureDetailCertificate>
 }

@@ -41,7 +41,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +55,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import data.local.LocalFavoritesRepository
 import data.local.LocalHistoryRepository
 import data.model.SignSource
@@ -103,24 +103,25 @@ fun AppListScreen(onItemClick: (SignSource) -> Unit) {
         modifier = Modifier.fillMaxSize(),
         label = "Allow access to the application list to view installed app signatures.",
       ) {
-        val model = remember(context.applicationContext) { AppListScreenModel(context.applicationContext) }
-        DisposableEffect(model) {
-          onDispose { model.dispose() }
+        val viewModel = viewModel {
+          AppListViewModel(
+            source = PackageManagerAppListSource(context.applicationContext),
+            historyRepository = history,
+            favoritesRepository = favorites,
+          )
         }
-        val state by model.state.collectAsState()
+        val state by viewModel.state.collectAsState()
         AppListContent(
           state = state,
           onEvent = state.eventSink,
           onOpenApk = { launcher.launch("application/vnd.android.package-archive") },
           onExport = { showExportSheet = true },
           onOpenApp = { app ->
-            scope.launch {
-              history.record(app.packageName, app.name)
-              onItemClick(SignSource.PackageName(app.packageName))
-            }
+            viewModel.recordViewed(app)
+            onItemClick(SignSource.PackageName(app.packageName))
           },
           onFavorite = { app ->
-            scope.launch { favorites.toggle(app.packageName, app.name) }
+            viewModel.toggleFavorite(app)
             Toast.makeText(context, "Favorites updated", Toast.LENGTH_SHORT).show()
           },
         )

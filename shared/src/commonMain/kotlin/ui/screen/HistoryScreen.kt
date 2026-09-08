@@ -21,11 +21,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import data.local.LocalHistoryRepository
-import kotlinx.coroutines.launch
 import ui.widget.AppListItem
 import ui.widget.LargeTitle
 import ui.widget.groupedRowShape
@@ -35,8 +34,8 @@ import java.util.Date
 @Composable
 fun HistoryScreen(onOpen: (packageName: String) -> Unit) {
   val repository = LocalHistoryRepository.current
-  val entries by repository.entries.collectAsState(emptyList())
-  val scope = rememberCoroutineScope()
+  val viewModel = viewModel { HistoryViewModel(repository) }
+  val entries by viewModel.entries.collectAsState()
   Scaffold { padding ->
     LazyColumn(
       modifier = Modifier.padding(padding).fillMaxSize(),
@@ -45,7 +44,7 @@ fun HistoryScreen(onOpen: (packageName: String) -> Unit) {
       item {
         LargeTitle("History") {
           if (entries.isNotEmpty()) {
-            TextButton(onClick = { scope.launch { repository.clear() } }) { Text("Clear") }
+            TextButton(onClick = viewModel::clear) { Text("Clear") }
           }
         }
         Text(
@@ -75,7 +74,7 @@ fun HistoryScreen(onOpen: (packageName: String) -> Unit) {
                 }
               },
               trailingContent = {
-                IconButton(onClick = { scope.launch { repository.remove(entry.packageName) } }) {
+                IconButton(onClick = { viewModel.remove(entry.packageName) }) {
                   Icon(Icons.Default.Close, "Remove ${entry.displayName} from history")
                 }
               },

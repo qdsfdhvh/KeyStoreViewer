@@ -21,12 +21,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import data.local.LocalFavoritesRepository
-import kotlinx.coroutines.launch
 import ui.widget.AppListItem
 import ui.widget.LargeTitle
 import ui.widget.groupedRowShape
@@ -35,8 +34,8 @@ import ui.widget.groupedRowShape
 @Composable
 fun FavoritesScreen(onOpen: (packageName: String) -> Unit) {
   val repository = LocalFavoritesRepository.current
-  val entries by repository.entries.collectAsState(emptyList())
-  val scope = rememberCoroutineScope()
+  val viewModel = viewModel { FavoritesViewModel(repository) }
+  val entries by viewModel.entries.collectAsState()
   Scaffold { padding ->
     LazyColumn(
       modifier = Modifier.padding(padding).fillMaxSize(),
@@ -53,7 +52,7 @@ fun FavoritesScreen(onOpen: (packageName: String) -> Unit) {
       }
       itemsIndexed(entries, key = { _, entry -> entry.packageName }) { index, entry ->
         val remove = {
-          scope.launch { repository.remove(entry.packageName) }
+          viewModel.remove(entry.packageName)
           Unit
         }
         Surface(

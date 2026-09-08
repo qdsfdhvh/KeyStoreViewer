@@ -139,6 +139,9 @@ dependencies {
   implementation(libs.navigation3.runtime)
   implementation(libs.navigation3.ui)
   implementation(libs.androidx.navigationevent.compose)
+  // rememberViewModelStoreNavEntryDecorator: scopes per-entry ViewModels to
+  // Nav3 entries; cleared when the entry leaves the back stack.
+  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
   debugImplementation(libs.compose.ui.tooling)
   testImplementation(libs.junit)
 }

@@ -52,6 +52,14 @@ interface ExportQuota {
   suspend fun tryConsume(): Boolean
 
   suspend fun addBonus(count: Int)
+
+  /**
+   * Re-reads date-sensitive remaining (a day rollover since the last update)
+   * into [remaining]. A retained instance must be refreshed on sheet entry,
+   * otherwise an exhausted previous day keeps Export disabled forever when no
+   * ad is ready. No-op for [UnlimitedExportQuota].
+   */
+  suspend fun refresh()
 }
 
 data object UnlimitedExportQuota : ExportQuota {
@@ -60,6 +68,8 @@ data object UnlimitedExportQuota : ExportQuota {
   override suspend fun tryConsume(): Boolean = true
 
   override suspend fun addBonus(count: Int) = Unit
+
+  override suspend fun refresh() = Unit
 }
 
 data object EmptyHistoryRepository : HistoryRepository {

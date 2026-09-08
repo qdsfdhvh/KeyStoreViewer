@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import data.model.AppSignature
 import data.model.SignSource
 import data.model.UiAppInfo
 
@@ -38,5 +37,5 @@ private fun ExtractSignatureInfoByFilePath() {
 @Stable
 private class ExtractSignatureInfoScopeImpl(
   override val appInfo: UiAppInfo,
-  override val signatures: List<AppSignature>,
+  override val signatures: List<SignatureDetailCertificate>,
 ) : ExtractSignatureInfoScope

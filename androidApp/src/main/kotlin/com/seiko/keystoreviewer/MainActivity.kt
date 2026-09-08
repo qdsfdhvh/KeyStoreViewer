@@ -13,6 +13,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
@@ -23,7 +24,6 @@ import androidx.navigation3.scene.rememberNavigationEventState
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
 import com.seiko.keystoreviewer.ads.Ads
-import com.seiko.keystoreviewer.ads.ExportQuotaProvider
 import com.seiko.keystoreviewer.ui.motion3.Motion3BackHandler
 import com.seiko.keystoreviewer.ui.motion3.motion3Metadata
 import com.seiko.keystoreviewer.ui.motion3.motion3PopTransitionSpec
@@ -32,8 +32,6 @@ import com.seiko.keystoreviewer.ui.motion3.motion3TransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3SceneDecoratorStrategy
 import com.seiko.keystoreviewer.update.StoreUpdatePrompt
-import data.local.FileFavoritesRepository
-import data.local.FileHistoryRepository
 import data.local.LocalExportQuota
 import data.local.LocalFavoritesRepository
 import data.local.LocalHistoryRepository
@@ -66,9 +64,9 @@ class MainActivity : ComponentActivity() {
         CompositionLocalProvider(
           LocalContentHandler provides contentHandler,
           LocalAdSlot provides Ads.slot(),
-          LocalHistoryRepository provides FileHistoryRepository(applicationContext),
-          LocalFavoritesRepository provides FileFavoritesRepository(applicationContext),
-          LocalExportQuota provides ExportQuotaProvider.quota(applicationContext),
+          LocalHistoryRepository provides AppSingletons.history(applicationContext),
+          LocalFavoritesRepository provides AppSingletons.favorites(applicationContext),
+          LocalExportQuota provides AppSingletons.exportQuota(applicationContext),
         ) {
           KeyStoreViewerApp()
         }
@@ -114,7 +112,12 @@ private fun KeyStoreViewerApp() {
   val motionSceneDecorator = rememberMotion3SceneDecoratorStrategy<NavKey>(motion)
   val entries = rememberDecoratedNavEntries(
     backStack = backStack,
-    entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
+    entryDecorators = listOf(
+      rememberSaveableStateHolderNavEntryDecorator(),
+      // Scopes viewModel() calls inside entries to the entry's ViewModelStore;
+      // cleared by the decorator when the entry is popped.
+      rememberViewModelStoreNavEntryDecorator(),
+    ),
     entryProvider = entryProvider {
       entry<AppList> {
         AppListScreen(
