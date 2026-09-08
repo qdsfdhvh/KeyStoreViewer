@@ -1,16 +1,26 @@
 package ui.screen
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,13 +35,12 @@ import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragData
 import androidx.compose.ui.draganddrop.dragData
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import data.model.SignSource
 import kotlinx.coroutines.launch
+import rememberApkDocument
+import ui.widget.LargeTitle
 import java.net.URI
 import kotlin.io.path.exists
-import kotlin.io.path.fileSize
 import kotlin.io.path.toPath
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
@@ -42,12 +51,12 @@ fun DropUploadContent(
   val scope = rememberCoroutineScope()
   val snackbarHostState = remember { SnackbarHostState() }
 
-  var backgroundColor by remember { mutableStateOf(Color.Transparent) }
+  var isDragging by remember { mutableStateOf(false) }
 
   val dragAndDropTarget = remember {
     object : DragAndDropTarget {
       override fun onStarted(event: DragAndDropEvent) {
-        backgroundColor = Color.DarkGray.copy(alpha = 0.2f)
+        isDragging = true
       }
 
       override fun onDrop(event: DragAndDropEvent): Boolean {
@@ -61,8 +70,6 @@ fun DropUploadContent(
             if (path.exists()) {
               success = true
 
-              println(path)
-              println("size: ${path.fileSize()}")
               onNavigateToDetail(path.toString())
             }
           }
@@ -76,7 +83,7 @@ fun DropUploadContent(
       }
 
       override fun onEnded(event: DragAndDropEvent) {
-        backgroundColor = Color.Transparent
+        isDragging = false
       }
     }
   }
@@ -86,24 +93,38 @@ fun DropUploadContent(
       SnackbarHost(snackbarHostState)
     },
   ) { innerPadding ->
-    Box(Modifier.padding(innerPadding).fillMaxSize(), Alignment.Center) {
-      Box(
-        modifier =
-        Modifier.fillMaxSize(0.5f)
-          .dragAndDropTarget(
-            shouldStartDragAndDrop = accept@{ _ ->
-              true
-            },
+    Box(Modifier.padding(innerPadding).fillMaxSize().padding(24.dp), Alignment.Center) {
+      Column(Modifier.widthIn(max = 560.dp).fillMaxWidth().verticalScroll(rememberScrollState())) {
+        LargeTitle("Inspect a signature")
+        Surface(
+          shape = MaterialTheme.shapes.large,
+          color = if (isDragging) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
+          border = BorderStroke(1.dp, if (isDragging) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant),
+          modifier = Modifier.fillMaxWidth().dragAndDropTarget(
+            shouldStartDragAndDrop = { true },
             target = dragAndDropTarget,
-          )
-          .background(backgroundColor)
-          .border(
-            width = 4.dp,
-            color = Color.Black,
-            shape = MaterialTheme.shapes.large,
           ),
-      ) {
-        Text(modifier = Modifier.align(Alignment.Center), text = "Drop anything here")
+        ) {
+          Column(
+            Modifier.heightIn(min = 280.dp).padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+          ) {
+            Icon(rememberApkDocument(), null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+            Text(if (isDragging) "Release to inspect" else "Drop an APK here", style = MaterialTheme.typography.headlineSmall)
+            Text(
+              "View signing fingerprints and public key information. Files are read locally, never uploaded.",
+              style = MaterialTheme.typography.bodyMedium,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        }
+        Text(
+          "Only APK files are supported.",
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+          modifier = Modifier.padding(12.dp),
+        )
       }
     }
   }

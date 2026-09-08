@@ -1,23 +1,31 @@
 package ui.widget
 
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import ui.widget.icon.rememberIcALowerCase
-import ui.widget.icon.rememberIcAUpperCase
-import ui.widget.icon.rememberIcColon
-import ui.widget.icon.rememberIcContentCopy
 
 @Composable
 fun HexText(
@@ -32,82 +40,47 @@ fun HexText(
   isColonSplit: Boolean = false,
   onToggleColonSplitClick: () -> Unit = {},
 ) {
-  SelectionContainer {
-    Surface(
-      modifier = modifier.fillMaxWidth(),
-      shape = MaterialTheme.shapes.medium,
-      border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-    ) {
-      Column(
-        modifier = Modifier
-          .padding(start = 8.dp, bottom = 8.dp)
-          .fillMaxWidth(),
-      ) {
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          modifier = Modifier.fillMaxWidth(),
+  Surface(modifier = modifier.fillMaxWidth(), shape = MaterialTheme.shapes.medium) {
+    Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+      Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+        TextButton(
+          onClick = onCopyContentClick,
+          modifier = Modifier.heightIn(min = 48.dp).semantics { contentDescription = "Copy $title" },
         ) {
-          Surface(
-            color = MaterialTheme.colorScheme.primary,
-            shape = MaterialTheme.shapes.small,
-          ) {
-            Text(
-              title,
-              style = MaterialTheme.typography.titleSmall,
-              modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-            )
-          }
-          Spacer(Modifier.weight(1f))
-
-          if (isShowColonButton) {
-            SmallIcon(
-              onClick = onToggleColonSplitClick,
-              imageVector = rememberIcColon(),
-              contentDescription = if (isColonSplit) {
-                "hide colon $title"
-              } else {
-                "show colon $title"
-              },
-              color = if (isColonSplit) {
-                MaterialTheme.colorScheme.primary
-              } else {
-                MaterialTheme.colorScheme.secondaryContainer
-              },
-            )
-          }
-
-          if (isShowToggleUpperOrLowCase) {
-            SmallIcon(
-              onClick = onToggleUpperOrLowCaseClick,
-              imageVector = if (isUpperCase) {
-                rememberIcAUpperCase()
-              } else {
-                rememberIcALowerCase()
-              },
-              contentDescription = if (isUpperCase) {
-                "show $title lower case"
-              } else {
-                "show $title upper case"
-              },
-              color = if (isUpperCase) {
-                MaterialTheme.colorScheme.primary
-              } else {
-                MaterialTheme.colorScheme.secondaryContainer
-              },
-            )
-          }
-
-          SmallIcon(
-            onClick = onCopyContentClick,
-            imageVector = rememberIcContentCopy(),
-            contentDescription = "copy $title content",
-          )
+          Icon(Icons.Default.ContentCopy, null, Modifier.size(16.dp))
+          Spacer(Modifier.width(6.dp))
+          Text("Copy")
         }
+      }
+      SelectionContainer {
         Text(
           text,
-          style = MaterialTheme.typography.bodySmall,
-          modifier = Modifier.padding(end = 8.dp),
+          style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+          modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
         )
+      }
+      if (isShowToggleUpperOrLowCase || isShowColonButton) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+          if (isShowToggleUpperOrLowCase) {
+            TextButton(
+              onClick = onToggleUpperOrLowCaseClick,
+              modifier = Modifier.heightIn(min = 48.dp).semantics {
+                contentDescription = "Change $title letter case"
+                stateDescription = if (isUpperCase) "Uppercase" else "Lowercase"
+              },
+            ) { Text(if (isUpperCase) "ABC · Uppercase" else "abc · Lowercase") }
+          }
+          if (isShowColonButton) {
+            TextButton(
+              onClick = onToggleColonSplitClick,
+              modifier = Modifier.heightIn(min = 48.dp).semantics {
+                contentDescription = "Change $title separator"
+                stateDescription = if (isColonSplit) "Colons" else "No separator"
+              },
+            ) { Text(if (isColonSplit) "AA:BB · Colons" else "AABB · No separator") }
+          }
+        }
       }
     }
   }

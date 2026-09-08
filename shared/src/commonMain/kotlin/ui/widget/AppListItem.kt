@@ -31,7 +31,7 @@ fun AppListItem(
 ) {
   val typography = MaterialTheme.typography
   val styledText = applyTextStyle(typography.titleMedium, headlineContent) ?: headlineContent
-  val styledSecondaryText = applyTextStyle(typography.bodyMedium, supportingContent)
+  val styledSecondaryText = applyTextStyle(typography.bodySmall, supportingContent)
   val styledOverLineText = applyTextStyle(typography.bodyMedium, overLineText)
   val styledTrailing = applyTextStyle(typography.labelMedium, trailingContent)
   Row(
@@ -48,7 +48,7 @@ fun AppListItem(
           styledText.invoke()
           Spacer(Modifier.height(4.dp))
           CompositionLocalProvider(
-            LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+            LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
           ) {
             styledSecondaryText()
           }
@@ -72,7 +72,7 @@ fun AppListItem(
     if (styledTrailing != null) {
       Spacer(Modifier.width(8.dp))
       CompositionLocalProvider(
-        LocalContentColor provides MaterialTheme.colorScheme.onSurface,
+        LocalContentColor provides MaterialTheme.colorScheme.onSurfaceVariant,
       ) {
         styledTrailing()
       }

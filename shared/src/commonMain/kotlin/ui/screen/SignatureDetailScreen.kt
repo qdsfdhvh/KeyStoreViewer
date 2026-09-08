@@ -5,29 +5,28 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Key
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -38,6 +37,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import data.model.AppSignature
@@ -48,12 +48,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okio.ByteString
 import platform.LocalContentHandler
-import ui.widget.AppListItem
+import ui.widget.DetailTopBar
 import ui.widget.HexText
-import ui.widget.MediumIcon
-import ui.widget.icon.rememberIcALowerCase
-import ui.widget.icon.rememberIcAUpperCase
-import ui.widget.icon.rememberIcShare
 import java.io.ByteArrayInputStream
 import java.math.BigInteger
 import java.security.cert.CertificateFactory
@@ -98,19 +94,7 @@ private fun SignatureDetailScreen(
   val snackbarHostState = remember { SnackbarHostState() }
   Scaffold(
     topBar = {
-      TopAppBar(
-        navigationIcon = {
-          IconButton(onClick = onBack) {
-            Icon(
-              Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = "back",
-            )
-          }
-        },
-        title = {
-          Text("Detail")
-        },
-      )
+      DetailTopBar("Signature details", onBack)
     },
     snackbarHost = {
       SnackbarHost(snackbarHostState)
@@ -123,54 +107,6 @@ private fun SignatureDetailScreen(
           .padding(innerPadding)
           .fillMaxSize(),
       ) {
-        Surface(
-          shape = MaterialTheme.shapes.medium,
-          tonalElevation = 1.dp,
-          modifier = Modifier.padding(horizontal = 16.dp),
-        ) {
-          AppListItem(
-            leadingContent = {
-              appInfo.icon?.let {
-                Image(
-                  it,
-                  contentDescription = null,
-                  modifier = Modifier.size(40.dp),
-                )
-              } ?: run {
-                Spacer(Modifier.size(40.dp))
-              }
-            },
-            headlineContent = {
-              Text(appInfo.name)
-            },
-            supportingContent = {
-              Text(appInfo.packageName)
-            },
-            trailingContent = {
-              Column(Modifier) {
-                Text(
-                  "version name:",
-                  style = MaterialTheme.typography.labelSmall,
-                )
-                Text(
-                  appInfo.versionName,
-                  style = MaterialTheme.typography.bodySmall,
-                )
-                Spacer(Modifier.height(6.dp))
-                Text(
-                  "version code:",
-                  style = MaterialTheme.typography.labelSmall,
-                )
-                Text(
-                  appInfo.versionCode.toString(),
-                  style = MaterialTheme.typography.bodySmall,
-                )
-              }
-            },
-            modifier = Modifier.padding(8.dp),
-          )
-        }
-
         val pagerState = rememberPagerState(0) { signatures.size }
 
         HorizontalPager(
@@ -281,11 +217,14 @@ private fun SignatureDetailScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxSize(),
           ) {
+            item {
+              SignatureIdentity(appInfo)
+            }
             stickyHeader {
-              Row(
+              FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier
                   .background(MaterialTheme.colorScheme.background)
-                  .padding(top = 16.dp)
                   .fillMaxWidth(),
               ) {
                 var isShowShareContentDialog by remember { mutableStateOf(false) }
@@ -295,8 +234,13 @@ private fun SignatureDetailScreen(
                   }
                 }
 
-                Spacer(Modifier.weight(1f))
-                MediumIcon(
+                Text(
+                  "Certificate ${page + 1} of ${signatures.size}",
+                  style = MaterialTheme.typography.labelMedium,
+                  color = MaterialTheme.colorScheme.onSurfaceVariant,
+                  modifier = Modifier.padding(vertical = 16.dp),
+                )
+                TextButton(
                   onClick = {
                     if (isAllUpper) {
                       isMd5Upper = false
@@ -308,23 +252,12 @@ private fun SignatureDetailScreen(
                       isSha256Upper = true
                     }
                   },
-                  imageVector = if (isAllUpper) {
-                    rememberIcAUpperCase()
-                  } else {
-                    rememberIcALowerCase()
-                  },
-                  contentDescription = "toggle all upper or lower case",
-                  color = if (isAllUpper) {
-                    MaterialTheme.colorScheme.primary
-                  } else {
-                    MaterialTheme.colorScheme.secondaryContainer
-                  },
-                )
-                MediumIcon(
+                  modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text(if (isAllUpper) "Lowercase all" else "Uppercase all") }
+                TextButton(
                   onClick = { isShowShareContentDialog = true },
-                  imageVector = rememberIcShare(),
-                  contentDescription = "share",
-                )
+                  modifier = Modifier.heightIn(min = 48.dp),
+                ) { Text("Share") }
 
                 if (isShowShareContentDialog) {
                   val content by produceState("") {
@@ -364,6 +297,22 @@ private fun SignatureDetailScreen(
                   }
                 }
               }
+            }
+            item {
+              HexText(
+                title = "SHA-256",
+                text = sha256,
+                onCopyContentClick = {
+                  onCopyContentClick(sha256, "sha256")
+                  scope.launch { snackbarHostState.showSnackbar("sha256 copied") }
+                },
+                isShowToggleUpperOrLowCase = true,
+                isUpperCase = isSha256Upper,
+                onToggleUpperOrLowCaseClick = { isSha256Upper = !isSha256Upper },
+                isShowColonButton = true,
+                isColonSplit = isSha256ColonSplit,
+                onToggleColonSplitClick = { isSha256ColonSplit = !isSha256ColonSplit },
+              )
             }
             item {
               HexText(
@@ -411,28 +360,6 @@ private fun SignatureDetailScreen(
             }
             item {
               HexText(
-                title = "SHA256",
-                text = sha256,
-                onCopyContentClick = {
-                  onCopyContentClick(sha256, "sha256")
-                  scope.launch {
-                    snackbarHostState.showSnackbar("sha256 copied")
-                  }
-                },
-                isShowToggleUpperOrLowCase = true,
-                isUpperCase = isSha256Upper,
-                onToggleUpperOrLowCaseClick = {
-                  isSha256Upper = !isSha256Upper
-                },
-                isShowColonButton = true,
-                isColonSplit = isSha256ColonSplit,
-                onToggleColonSplitClick = {
-                  isSha256ColonSplit = !isSha256ColonSplit
-                },
-              )
-            }
-            item {
-              HexText(
                 title = "Public Key (16)",
                 text = modulusHex,
                 onCopyContentClick = {
@@ -462,6 +389,25 @@ private fun SignatureDetailScreen(
         }
       }
     }
+  }
+}
+
+@Composable
+private fun SignatureIdentity(appInfo: UiAppInfo) {
+  Column(
+    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+    horizontalAlignment = Alignment.CenterHorizontally,
+    verticalArrangement = Arrangement.spacedBy(8.dp),
+  ) {
+    appInfo.icon?.let { Image(it, null, Modifier.size(64.dp)) }
+      ?: Icon(Icons.Default.Key, null, Modifier.size(48.dp), tint = MaterialTheme.colorScheme.primary)
+    Text(appInfo.name, style = MaterialTheme.typography.headlineSmall)
+    Text(appInfo.packageName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    Text(
+      "Version ${appInfo.versionName} · ${appInfo.versionCode}",
+      style = MaterialTheme.typography.labelMedium,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
 }
 

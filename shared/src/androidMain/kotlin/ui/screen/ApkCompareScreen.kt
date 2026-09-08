@@ -13,17 +13,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +36,9 @@ import signature.SignerSetComparisonOutcome
 import signature.colonSeparatedHex
 import signature.compareSignerSets
 import signature.readApkSignerMetaFromUri
+import ui.widget.DetailTopBar
+import ui.widget.GroupedCard as Card
+import ui.widget.SecondaryButton as OutlinedButton
 
 /**
  * M4 dual-APK signer comparison.
@@ -114,19 +110,7 @@ fun ApkCompareScreen(
   Scaffold(
     modifier = modifier,
     topBar = {
-      TopAppBar(
-        navigationIcon = {
-          IconButton(onClick = onBack) {
-            Icon(
-              Icons.AutoMirrored.Filled.ArrowBack,
-              contentDescription = "back",
-            )
-          }
-        },
-        title = {
-          Text("Compare APK signatures")
-        },
-      )
+      DetailTopBar("Compare APK signatures", onBack)
     },
   ) { innerPadding ->
     LazyColumn(
