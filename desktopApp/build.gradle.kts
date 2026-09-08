@@ -23,6 +23,17 @@ compose.desktop {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
       packageName = "com.seiko.keystoreviewer"
       packageVersion = "1.1.0"
+      // Product branding generated from the same master as the Android
+      // launcher icons (implementation/tools/generate_icons.py, ignored).
+      linux {
+        iconFile.set(rootProject.file("desktopApp/icons/keystoreviewer-linux.png"))
+      }
+      windows {
+        iconFile.set(rootProject.file("desktopApp/icons/keystoreviewer.ico"))
+      }
+      macOS {
+        iconFile.set(rootProject.file("desktopApp/icons/keystoreviewer.icns"))
+      }
     }
   }
 }

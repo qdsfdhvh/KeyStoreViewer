@@ -4,8 +4,14 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
@@ -34,6 +40,9 @@ import kotlinx.serialization.Serializable
 import platform.ContentHandler
 import platform.LocalContentHandler
 import platform.ads.LocalAdSlot
+import ui.navigation.RootTab
+import ui.navigation.RootTabBar
+import ui.navigation.selectRoot
 import ui.screen.ApkCompareScreen
 import ui.screen.AppListScreen
 import ui.screen.FavoritesScreen
@@ -110,22 +119,12 @@ private fun KeyStoreViewerApp() {
           onItemClick = { signSource ->
             backStack.add(SignatureDetail(signSource))
           },
-          onOpenHistory = {
-            backStack.add(History)
-          },
-          onOpenFavorites = {
-            backStack.add(Favorites)
-          },
-          onOpenSignatureTools = {
-            backStack.add(SignatureTools)
-          },
         )
       }
       entry<History>(
         metadata = motion3Metadata(),
       ) {
         HistoryScreen(
-          onBack = onBack,
           onOpen = { packageName ->
             backStack.add(SignatureDetail(SignSource.PackageName(packageName)))
           },
@@ -135,7 +134,6 @@ private fun KeyStoreViewerApp() {
         metadata = motion3Metadata(),
       ) {
         FavoritesScreen(
-          onBack = onBack,
           onOpen = { packageName ->
             backStack.add(SignatureDetail(SignSource.PackageName(packageName)))
           },
@@ -153,7 +151,6 @@ private fun KeyStoreViewerApp() {
         metadata = motion3Metadata(),
       ) {
         SignatureToolsScreen(
-          onBack = onBack,
           onOpenKeystoreBrowser = {
             backStack.add(KeystoreBrowser)
           },
@@ -203,11 +200,28 @@ private fun KeyStoreViewerApp() {
     onBackCompleted = onBack,
   )
 
-  NavDisplay(
-    sceneState = sceneState,
-    navigationEventState = navigationEventState,
-    transitionSpec = { motion3TransitionSpec() },
-    popTransitionSpec = { motion3PopTransitionSpec() },
-    predictivePopTransitionSpec = { motion3PredictivePopTransitionSpec() },
-  )
+  val selectedRoot = backStack.lastOrNull { it in rootDestinations.values } ?: AppList
+  val selectedTab = rootDestinations.entries.first { it.value == selectedRoot }.key
+  Scaffold(
+    contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    bottomBar = {
+      RootTabBar(selectedTab) { target -> backStack.selectRoot(AppList, rootDestinations.getValue(target)) }
+    },
+  ) { padding ->
+    NavDisplay(
+      modifier = Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding),
+      sceneState = sceneState,
+      navigationEventState = navigationEventState,
+      transitionSpec = { motion3TransitionSpec() },
+      popTransitionSpec = { motion3PopTransitionSpec() },
+      predictivePopTransitionSpec = { motion3PredictivePopTransitionSpec() },
+    )
+  }
 }
+
+private val rootDestinations = mapOf<RootTab, NavKey>(
+  RootTab.Apps to AppList,
+  RootTab.Tools to SignatureTools,
+  RootTab.History to History,
+  RootTab.Favorites to Favorites,
+)

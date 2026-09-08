@@ -26,7 +26,6 @@ kotlin {
       implementation(compose.components.uiToolingPreview)
       implementation(libs.kotlinx.io)
       implementation(libs.okio)
-      implementation(libs.material.kolor)
       // Runtime for the M4 @Serializable monitor state (store lives in androidMain).
       implementation(libs.kotlinx.serialization.json)
       // M4: vetted FOSS BouncyCastle for JKS/PKCS12 keystore parsing
