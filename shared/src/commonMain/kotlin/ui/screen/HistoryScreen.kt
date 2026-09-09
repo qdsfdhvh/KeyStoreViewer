@@ -23,8 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import data.local.LocalHistoryRepository
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import ui.widget.AppListItem
 import ui.widget.LargeTitle
 import ui.widget.groupedRowShape
@@ -33,8 +32,8 @@ import java.util.Date
 
 @Composable
 fun HistoryScreen(onOpen: (packageName: String) -> Unit) {
-  val repository = LocalHistoryRepository.current
-  val viewModel = viewModel { HistoryViewModel(repository) }
+  // Scoped to this Nav3 entry's ViewModelStore; the repository comes from the app graph.
+  val viewModel = metroViewModel<HistoryViewModel>()
   val entries by viewModel.entries.collectAsState()
   Scaffold { padding ->
     LazyColumn(

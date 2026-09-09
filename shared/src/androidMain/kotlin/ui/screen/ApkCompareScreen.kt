@@ -24,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import signature.ApkSignerMeta
 import signature.ApkSignerRead
 import signature.ApkSignerReadError
@@ -65,7 +65,8 @@ fun ApkCompareScreen(
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  val viewModel = viewModel { ApkCompareViewModel() }
+  // Scoped to this Nav3 entry's ViewModelStore.
+  val viewModel = metroViewModel<ApkCompareViewModel>()
   val leftSide by viewModel.left.collectAsState()
   val rightSide by viewModel.right.collectAsState()
   // Reads capture the application context only; the ViewModel never sees an

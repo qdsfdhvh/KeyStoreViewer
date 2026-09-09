@@ -35,8 +35,8 @@ private class SharedPreferencesQuotaStore(context: Context) : QuotaStore {
 /**
  * play 变体的导出配额:每天 [FREE_PER_DAY] 次免费,看激励广告 +[BONUS_PER_AD] 次。
  * 配额按本地时区自然日重置:上一天的 used/bonus 不结转;未用完的 bonus 随自然日失效。
- * 实例在 AppSingletons 中进程级保留,[refresh] 在每次弹层进入时重读日期敏感的
- * remaining,避免前一日耗尽后(且广告未就绪时)Export 永久禁用。
+ * 实例由应用级 Metro 图以 @SingleIn 绑定进程级保留,[refresh] 在每次弹层进入时重读
+ * 日期敏感的 remaining,避免前一日耗尽后(且广告未就绪时)Export 永久禁用。
  */
 class AdExportQuota internal constructor(
   private val store: QuotaStore,

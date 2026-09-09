@@ -31,9 +31,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import data.local.LocalExportQuota
 import data.local.UnlimitedExportQuota
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import platform.ads.AdSlot
 import platform.ads.LocalAdSlot
 import java.text.SimpleDateFormat
@@ -56,13 +55,11 @@ fun ExportSheet(
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  val quota = LocalExportQuota.current
+  // Scoped to the hosting Nav3 entry (retained across Activity recreation):
+  // quota and report writer come from the app graph.
+  val viewModel = metroViewModel<ExportViewModel>()
+  val quota = viewModel.quota
   val adSlot = LocalAdSlot.current
-  // CompositionLocals are read before the initializer (composable-read rule);
-  // the writer holds the application context only, never an Activity.
-  val viewModel = viewModel {
-    ExportViewModel(quota, SignatureReportExportWriter(context.applicationContext))
-  }
   val remaining by quota.remaining.collectAsState(null)
   val rewardedReady by adSlot.isRewardedReady.collectAsState()
   var offerRewarded by remember { mutableStateOf(false) }

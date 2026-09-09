@@ -1,7 +1,6 @@
 package ui.screen
 
 import android.Manifest
-import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,12 +25,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import signature.MonitorState
 import signature.PackageSignerStatus
 import signature.ReinstallSignerComparison
@@ -65,11 +63,10 @@ import ui.widget.PrimaryButton as Button
 fun SignatureMonitorScreen(
   onBack: () -> Unit,
   modifier: Modifier = Modifier,
-  context: Context = LocalContext.current,
 ) {
-  val viewModel = viewModel {
-    SignatureMonitorViewModel(ControllerSignatureMonitorActions(context.applicationContext))
-  }
+  // Scoped to this Nav3 entry's ViewModelStore; the WorkManager-backed actions
+  // adapter is an app-graph binding.
+  val viewModel = metroViewModel<SignatureMonitorViewModel>()
   val state by viewModel.state.collectAsState()
 
   val notificationPermission = if (Build.VERSION.SDK_INT >= 33) {

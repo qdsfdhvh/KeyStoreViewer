@@ -3,6 +3,10 @@ package ui.screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import data.local.ExportQuota
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -61,8 +65,14 @@ private data class SessionEvent(val originSession: Long, val event: ExportEvent)
  * Play (daily + ad bonus) builds. Pure sheet UI state (dialogs, busy flags)
  * stays local.
  */
+// Constructed by the Metro graph via SharedViewModelFactory: the app-scoped
+// quota binding and report writer are injected, this instance stays owned by
+// its Nav3 entry. The sheet reads quota state through [quota].
+@Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(ExportViewModel::class)
 class ExportViewModel(
-  private val quota: ExportQuota,
+  val quota: ExportQuota,
   private val writer: ExportReportWriter,
 ) : ViewModel() {
 

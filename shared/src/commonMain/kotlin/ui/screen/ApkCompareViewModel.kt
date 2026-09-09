@@ -2,6 +2,10 @@ package ui.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,6 +39,11 @@ fun interface ApkCompareSource {
  * deleted by the source's cleanup - and can never publish), so a result is
  * only ever rendered under the file it was read from.
  */
+// Constructed by the Metro graph via SharedViewModelFactory; this instance
+// stays owned by its Nav3 entry.
+@Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(ApkCompareViewModel::class)
 class ApkCompareViewModel : ViewModel() {
 
   private val generations = mapOf(

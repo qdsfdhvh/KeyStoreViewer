@@ -1,6 +1,5 @@
 package data.local
 
-import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.Serializable
@@ -91,9 +90,3 @@ data object EmptyFavoritesRepository : FavoritesRepository {
 
   override suspend fun remove(packageName: String) = Unit
 }
-
-val LocalHistoryRepository = staticCompositionLocalOf<HistoryRepository> { EmptyHistoryRepository }
-
-val LocalFavoritesRepository = staticCompositionLocalOf<FavoritesRepository> { EmptyFavoritesRepository }
-
-val LocalExportQuota = staticCompositionLocalOf<ExportQuota> { UnlimitedExportQuota }

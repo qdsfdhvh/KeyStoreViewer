@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.jetbrainsCompose)
   alias(libs.plugins.compose.compiler)
   id("org.jetbrains.kotlin.plugin.serialization")
+  alias(libs.plugins.metro)
 }
 
 kotlin {
@@ -25,6 +26,10 @@ kotlin {
       implementation(compose.components.resources)
       implementation(compose.components.uiToolingPreview)
       implementation(libs.androidx.lifecycle.viewmodel.compose)
+      // Metro ViewModel DI: shared declares the ViewModel factory + screen-side
+      // construction API; the concrete graph lives in androidApp.
+      api(libs.metrox.viewmodel)
+      implementation(libs.metrox.viewmodel.compose)
       implementation(libs.kotlinx.io)
       implementation(libs.okio)
       // Runtime for the M4 @Serializable monitor state (store lives in androidMain).

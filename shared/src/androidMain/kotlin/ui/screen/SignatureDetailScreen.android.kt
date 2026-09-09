@@ -5,13 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import data.model.AppSignature
 import data.model.SignSource
 import data.model.UiAppInfo
 import data.model.from
+import dev.zacsweers.metrox.viewmodel.assistedMetroViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.ByteString
@@ -29,11 +27,11 @@ actual fun ExtractSignatureInfo(
   signSource: SignSource,
   content: @Composable ExtractSignatureInfoScope.() -> Unit,
 ) {
-  val context = LocalContext.current
-  val loader = remember(context.applicationContext) {
-    PackageManagerSignatureDetailLoader(context.applicationContext)
+  // The loader is an app-graph binding; the runtime SignSource rides through
+  // the manual assisted factory. Scoped to this Nav3 entry's ViewModelStore.
+  val viewModel = assistedMetroViewModel<SignatureDetailViewModel, SignatureDetailViewModel.Factory> {
+    create(signSource)
   }
-  val viewModel = viewModel { SignatureDetailViewModel(signSource, loader) }
   val data by viewModel.data.collectAsState()
   data?.let {
     ExtractSignatureInfoScopeImpl(

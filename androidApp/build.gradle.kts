@@ -6,6 +6,7 @@ plugins {
   alias(libs.plugins.androidApplication)
   id("org.jetbrains.kotlin.plugin.compose")
   id("org.jetbrains.kotlin.plugin.serialization")
+  alias(libs.plugins.metro)
 }
 
 android {
@@ -142,8 +143,14 @@ dependencies {
   // rememberViewModelStoreNavEntryDecorator: scopes per-entry ViewModels to
   // Nav3 entries; cleared when the entry leaves the back stack.
   implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+  // Metro DI: application graph + ViewModel factory composition.
+  implementation(libs.metrox.viewmodel)
+  implementation(libs.metrox.viewmodel.compose)
   debugImplementation(libs.compose.ui.tooling)
   testImplementation(libs.junit)
+  // Dispatchers.setMain: lets graph-built ViewModels run their viewModelScope
+  // (Dispatchers.Main.immediate) deterministically in plain JVM unit tests.
+  testImplementation(libs.kotlinx.coroutines.test)
 }
 
 val gitCommit: String =

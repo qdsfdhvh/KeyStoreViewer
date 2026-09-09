@@ -55,11 +55,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import data.local.LocalFavoritesRepository
-import data.local.LocalHistoryRepository
 import data.model.SignSource
 import data.model.UiAppInfo
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -76,8 +74,6 @@ import util.getFilePathFromUri
 fun AppListScreen(onItemClick: (SignSource) -> Unit) {
   val context = LocalContext.current
   val scope = rememberCoroutineScope()
-  val history = LocalHistoryRepository.current
-  val favorites = LocalFavoritesRepository.current
   var showExportSheet by remember { mutableStateOf(false) }
   val launcher = rememberLauncherForActivityResult(
     remember { ActivityResultContracts.GetContent() },
@@ -103,13 +99,9 @@ fun AppListScreen(onItemClick: (SignSource) -> Unit) {
         modifier = Modifier.fillMaxSize(),
         label = "Allow access to the application list to view installed app signatures.",
       ) {
-        val viewModel = viewModel {
-          AppListViewModel(
-            source = PackageManagerAppListSource(context.applicationContext),
-            historyRepository = history,
-            favoritesRepository = favorites,
-          )
-        }
+        // Scoped to this Nav3 entry's ViewModelStore; source and repositories
+        // come from the app graph.
+        val viewModel = metroViewModel<AppListViewModel>()
         val state by viewModel.state.collectAsState()
         AppListContent(
           state = state,

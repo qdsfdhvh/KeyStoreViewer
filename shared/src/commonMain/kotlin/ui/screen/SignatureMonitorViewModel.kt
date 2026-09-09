@@ -2,6 +2,10 @@ package ui.screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -60,6 +64,12 @@ data class SignatureMonitorUiState(
  * (e.g. persistence) are shown honestly instead of reporting success. A
  * failed load keeps the last displayed state: it is not a disabled state.
  */
+// Constructed by the Metro graph via SharedViewModelFactory: the WorkManager-
+// backed actions adapter is an app-scoped binding, this instance stays owned
+// by its Nav3 entry.
+@Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(SignatureMonitorViewModel::class)
 class SignatureMonitorViewModel(
   private val actions: SignatureMonitorActions,
 ) : ViewModel() {

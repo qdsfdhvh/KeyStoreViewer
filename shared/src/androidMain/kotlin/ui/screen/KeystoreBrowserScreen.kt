@@ -28,7 +28,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -70,7 +70,9 @@ fun KeystoreBrowserScreen(
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  val viewModel = viewModel { KeystoreBrowserViewModel() }
+  // Scoped to this Nav3 entry's ViewModelStore: the password and keystore bytes
+  // die with the entry, never with the app.
+  val viewModel = metroViewModel<KeystoreBrowserViewModel>()
   // Bounded file reads capture the application context only; the ViewModel
   // must never retain an Activity.
   val appContext = context.applicationContext

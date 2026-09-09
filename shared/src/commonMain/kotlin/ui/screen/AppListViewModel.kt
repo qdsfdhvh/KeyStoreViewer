@@ -6,6 +6,10 @@ import androidx.lifecycle.viewModelScope
 import data.local.FavoritesRepository
 import data.local.HistoryRepository
 import data.model.UiAppInfo
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesIntoMap
+import dev.zacsweers.metro.Inject
+import dev.zacsweers.metrox.viewmodel.ViewModelKey
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +27,12 @@ fun interface AppListSource {
   suspend fun load(type: AppType): List<UiAppInfo>
 }
 
+// Constructed by the Metro graph via SharedViewModelFactory: the source and
+// repositories are app-scoped bindings, this instance stays owned by its Nav3
+// entry.
+@Inject
+@ContributesIntoMap(AppScope::class)
+@ViewModelKey(AppListViewModel::class)
 class AppListViewModel(
   private val source: AppListSource,
   private val historyRepository: HistoryRepository,

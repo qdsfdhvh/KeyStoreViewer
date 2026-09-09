@@ -24,6 +24,7 @@ import androidx.navigation3.scene.rememberNavigationEventState
 import androidx.navigation3.scene.rememberSceneState
 import androidx.navigation3.ui.NavDisplay
 import com.seiko.keystoreviewer.ads.Ads
+import com.seiko.keystoreviewer.di.appGraph
 import com.seiko.keystoreviewer.ui.motion3.Motion3BackHandler
 import com.seiko.keystoreviewer.ui.motion3.motion3Metadata
 import com.seiko.keystoreviewer.ui.motion3.motion3PopTransitionSpec
@@ -32,10 +33,8 @@ import com.seiko.keystoreviewer.ui.motion3.motion3TransitionSpec
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3
 import com.seiko.keystoreviewer.ui.motion3.rememberMotion3SceneDecoratorStrategy
 import com.seiko.keystoreviewer.update.StoreUpdatePrompt
-import data.local.LocalExportQuota
-import data.local.LocalFavoritesRepository
-import data.local.LocalHistoryRepository
 import data.model.SignSource
+import dev.zacsweers.metrox.viewmodel.LocalMetroViewModelFactory
 import kotlinx.serialization.Serializable
 import platform.ContentHandler
 import platform.LocalContentHandler
@@ -59,14 +58,15 @@ class MainActivity : ComponentActivity() {
     super.onCreate(savedInstanceState)
     val contentHandler = ContentHandler(applicationContext)
     Ads.initialize(this)
+    // Application-owned graph: the factory is created once and shared by every
+    // screen; ViewModels built from it stay scoped to their Nav3 entries.
+    val metroViewModelFactory = appGraph.metroViewModelFactory
     setContent {
       AppTheme {
         CompositionLocalProvider(
           LocalContentHandler provides contentHandler,
           LocalAdSlot provides Ads.slot(),
-          LocalHistoryRepository provides AppSingletons.history(applicationContext),
-          LocalFavoritesRepository provides AppSingletons.favorites(applicationContext),
-          LocalExportQuota provides AppSingletons.exportQuota(applicationContext),
+          LocalMetroViewModelFactory provides metroViewModelFactory,
         ) {
           KeyStoreViewerApp()
         }

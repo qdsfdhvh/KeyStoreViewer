@@ -24,8 +24,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import data.local.LocalFavoritesRepository
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import ui.widget.AppListItem
 import ui.widget.LargeTitle
 import ui.widget.groupedRowShape
@@ -33,8 +32,8 @@ import ui.widget.groupedRowShape
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FavoritesScreen(onOpen: (packageName: String) -> Unit) {
-  val repository = LocalFavoritesRepository.current
-  val viewModel = viewModel { FavoritesViewModel(repository) }
+  // Scoped to this Nav3 entry's ViewModelStore; the repository comes from the app graph.
+  val viewModel = metroViewModel<FavoritesViewModel>()
   val entries by viewModel.entries.collectAsState()
   Scaffold { padding ->
     LazyColumn(
