@@ -22,22 +22,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import data.local.LocalExportQuota
 import data.local.UnlimitedExportQuota
-import export.SignatureReportExporter
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import platform.ads.AdSlot
 import platform.ads.LocalAdSlot
 import java.text.SimpleDateFormat
@@ -48,6 +43,10 @@ import ui.widget.PrimaryButton as Button
 /**
  * 批量导出签名报告的弹层。
  * play 变体:每天 2 次免费,看完激励广告 +2 次;foss 变体:UnlimitedExportQuota 完全免费。
+ *
+ * 配额消耗、激励奖励与报告写入属于业务动作,由 entry 级 [ExportViewModel]
+ * 持有(写入与奖励用 NonCancellable 保证完成);isExporting / 激励弹窗属于
+ * 瞬时 UI 状态,保留在本组合内。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -56,9 +55,11 @@ fun ExportSheet(
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  val quota = LocalExportQuota.current
+  // Scoped to the hosting Nav3 entry (retained across Activity recreation):
+  // quota and report writer come from the app graph.
+  val viewModel = metroViewModel<ExportViewModel>()
+  val quota = viewModel.quota
   val adSlot = LocalAdSlot.current
-  val scope = rememberCoroutineScope()
   val remaining by quota.remaining.collectAsState(null)
   val rewardedReady by adSlot.isRewardedReady.collectAsState()
   var offerRewarded by remember { mutableStateOf(false) }
@@ -68,32 +69,49 @@ fun ExportSheet(
     remember { ActivityResultContracts.CreateDocument("text/csv") },
   ) { uri: Uri? ->
     if (uri != null) {
-      scope.launch {
-        val ok = try {
-          withContext(Dispatchers.IO) {
-            val csv = SignatureReportExporter.buildCsv(context)
-            SignatureReportExporter.write(context, uri, csv)
-          }
-        } catch (e: CancellationException) {
-          throw e
-        } catch (_: Exception) {
-          false
-        }
-        Toast.makeText(context, if (ok) "Report saved" else "Failed to save report", Toast.LENGTH_SHORT).show()
-        isExporting = false
-        onDismiss()
-      }
+      viewModel.writeReport(uri.toString())
     } else {
       isExporting = false
       onDismiss()
     }
   }
 
-  fun exportNow() {
-    isExporting = true
-    launcher.launch(
-      "keystoreviewer-signatures-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date()) + ".csv",
-    )
+  LaunchedEffect(viewModel) {
+    // Sheet session start: this instance supersedes older ones, so queued and
+    // in-flight producers from detached sessions can no longer drive this
+    // sheet (stale toasts, instant dismiss, an unexpected document-creator
+    // launch). Re-reading the date-sensitive quota un-sticks Export after a
+    // day rollover on a retained quota instance.
+    val session = viewModel.beginSession()
+    try {
+      viewModel.refreshQuota()
+      viewModel.events.collect { event ->
+        when (event) {
+          ExportEvent.CreateDocument -> launcher.launch(defaultCsvName())
+
+          ExportEvent.OutOfQuota -> {
+            isExporting = false
+            offerRewarded = true
+          }
+
+          is ExportEvent.WriteFinished -> {
+            Toast.makeText(
+              context,
+              if (event.ok) "Report saved" else "Failed to save report",
+              Toast.LENGTH_SHORT,
+            ).show()
+            isExporting = false
+            onDismiss()
+          }
+
+          ExportEvent.BonusWithoutSlot -> isExporting = false
+        }
+      }
+    } finally {
+      // Invalidate callbacks even if no replacement sheet ever opens. An old
+      // collector's cleanup must not invalidate a newer session.
+      viewModel.endSession(session)
+    }
   }
 
   ModalBottomSheet(
@@ -133,14 +151,7 @@ fun ExportSheet(
         onClick = {
           if (!isExporting) {
             isExporting = true
-            scope.launch {
-              if (quota.tryConsume()) {
-                exportNow()
-              } else {
-                isExporting = false
-                offerRewarded = true
-              }
-            }
+            viewModel.exportClicked()
           }
         },
         enabled = !isExporting && (remaining?.let { it > 0 || (adSlot.canShowRewarded() && rewardedReady) } ?: false),
@@ -172,16 +183,17 @@ fun ExportSheet(
           onClick = {
             offerRewarded = false
             isExporting = true
+            // Capture this session before the ad shows: the callback is
+            // delivered later and must not be routed to a newer session.
+            val originSession = viewModel.session
             adSlot.showRewarded("export_report") { rewarded ->
               if (rewarded) {
-                scope.launch {
-                  quota.addBonus(AdSlot.REWARD_BONUS_COUNT)
-                  if (quota.tryConsume()) {
-                    exportNow()
-                  } else {
-                    isExporting = false
-                  }
-                }
+                // Crediting starts only if this VM is still alive when the
+                // ad ends (a cleared entry cannot credit a pending reward);
+                // once started it completes even if the entry is torn down
+                // mid-credit, and only the originating session may consume
+                // the earned slot.
+                viewModel.rewardEarned(originSession)
               } else {
                 isExporting = false
                 Toast.makeText(context, "Ad not finished", Toast.LENGTH_SHORT).show()
@@ -200,3 +212,5 @@ fun ExportSheet(
     )
   }
 }
+
+private fun defaultCsvName(): String = "keystoreviewer-signatures-" + SimpleDateFormat("yyyyMMdd-HHmm", Locale.US).format(Date()) + ".csv"

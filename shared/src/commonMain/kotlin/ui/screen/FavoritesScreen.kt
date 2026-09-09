@@ -21,12 +21,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import data.local.LocalFavoritesRepository
-import kotlinx.coroutines.launch
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import ui.widget.AppListItem
 import ui.widget.LargeTitle
 import ui.widget.groupedRowShape
@@ -34,9 +32,9 @@ import ui.widget.groupedRowShape
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun FavoritesScreen(onOpen: (packageName: String) -> Unit) {
-  val repository = LocalFavoritesRepository.current
-  val entries by repository.entries.collectAsState(emptyList())
-  val scope = rememberCoroutineScope()
+  // Scoped to this Nav3 entry's ViewModelStore; the repository comes from the app graph.
+  val viewModel = metroViewModel<FavoritesViewModel>()
+  val entries by viewModel.entries.collectAsState()
   Scaffold { padding ->
     LazyColumn(
       modifier = Modifier.padding(padding).fillMaxSize(),
@@ -53,7 +51,7 @@ fun FavoritesScreen(onOpen: (packageName: String) -> Unit) {
       }
       itemsIndexed(entries, key = { _, entry -> entry.packageName }) { index, entry ->
         val remove = {
-          scope.launch { repository.remove(entry.packageName) }
+          viewModel.remove(entry.packageName)
           Unit
         }
         Surface(

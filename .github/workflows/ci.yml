@@ -14,9 +14,9 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Check
-        run: ./gradlew spotlessCheck :shared:desktopTest :androidApp:testPlayDebugUnitTest :androidApp:assembleDebug :desktopApp:compileKotlin
+        run: ./gradlew spotlessCheck :shared:desktopTest :androidApp:testPlayDebugUnitTest :androidApp:testFossDebugUnitTest :androidApp:assembleDebug :desktopApp:compileKotlin

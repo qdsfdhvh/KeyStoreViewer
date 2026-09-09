@@ -18,20 +18,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.launch
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import signature.ApkSignerMeta
 import signature.ApkSignerRead
 import signature.ApkSignerReadError
-import signature.SelectionGeneration
 import signature.SignerSetComparisonOutcome
 import signature.colonSeparatedHex
 import signature.compareSignerSets
@@ -47,10 +43,14 @@ import ui.widget.SecondaryButton as OutlinedButton
  * (SHA-256 of each certificate) of two APK files using PackageManager's
  * signing-aware archive APIs.
  *
- * Temporary copies of the picked APKs are lifecycle-owned by
- * [signature.readApkSignerMetaFromUri]: bounded, cancellation-aware and
- * deleted in a finally block. Screen state only ever holds metadata, so
- * replacing a selection or leaving the screen cannot leak a temporary file.
+ * Sides, stale-selection protection and the in-flight reads are owned by the
+ * entry-scoped [ApkCompareViewModel]. Temporary copies of the picked APKs are
+ * lifecycle-owned by [signature.readApkSignerMetaFromUri]: bounded,
+ * cancellation-aware and deleted in a finally block - on completion,
+ * replacement (the ViewModel cancels a superseded read) and on the entry
+ * being popped (the ViewModel scope is cancelled). Screen state only ever
+ * holds metadata, so replacing a selection or leaving the screen cannot leak
+ * a temporary file.
  *
  * Honest framing (also shown in the UI):
  * - this is certificate metadata extraction, NOT full APK integrity
@@ -58,10 +58,6 @@ import ui.widget.SecondaryButton as OutlinedButton
  * - equal signers do not prove an APK is authentic, unmodified or upgradable;
  * - different signers alone do not prove an APK is malicious.
  */
-private data class ApkCompareSide(
-  val result: ApkSignerRead?,
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ApkCompareScreen(
@@ -69,43 +65,27 @@ fun ApkCompareScreen(
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  val scope = rememberCoroutineScope()
-  var leftSide by remember { mutableStateOf(ApkCompareSide(null)) }
-  var rightSide by remember { mutableStateOf(ApkCompareSide(null)) }
-  val leftSelection = remember { SelectionGeneration() }
-  val rightSelection = remember { SelectionGeneration() }
+  // Scoped to this Nav3 entry's ViewModelStore.
+  val viewModel = metroViewModel<ApkCompareViewModel>()
+  val leftSide by viewModel.left.collectAsState()
+  val rightSide by viewModel.right.collectAsState()
+  // Reads capture the application context only; the ViewModel never sees an
+  // Activity (the source lambda is dropped once its read finishes).
+  val appContext = context.applicationContext
 
-  fun onPicked(
-    selection: SelectionGeneration,
-    setSide: (ApkCompareSide) -> Unit,
-    uri: Uri?,
-  ) {
+  fun onPicked(side: ApkCompareSide, uri: Uri?) {
     if (uri == null) {
       return
     }
-    scope.launch {
-      val token = selection.invalidate()
-      setSide(ApkCompareSide(null))
-      val read = try {
-        readApkSignerMetaFromUri(context, uri)
-      } catch (e: CancellationException) {
-        throw e
-      } catch (e: Exception) {
-        ApkSignerRead.Failure(ApkSignerReadError.NotApkOrUnreadable)
-      }
-      // A newer selection for this side supersedes this result.
-      if (selection.isValid(token)) {
-        setSide(ApkCompareSide(read))
-      }
-    }
+    viewModel.onApkPicked(side) { readApkSignerMetaFromUri(appContext, uri) }
   }
 
   val leftLauncher = rememberLauncherForActivityResult(
     remember { ActivityResultContracts.OpenDocument() },
-  ) { uri -> onPicked(leftSelection, { leftSide = it }, uri) }
+  ) { uri -> onPicked(ApkCompareSide.Left, uri) }
   val rightLauncher = rememberLauncherForActivityResult(
     remember { ActivityResultContracts.OpenDocument() },
-  ) { uri -> onPicked(rightSelection, { rightSide = it }, uri) }
+  ) { uri -> onPicked(ApkCompareSide.Right, uri) }
 
   Scaffold(
     modifier = modifier,
@@ -123,21 +103,21 @@ fun ApkCompareScreen(
       item {
         SideCard(
           label = "APK A",
-          side = leftSide,
+          result = leftSide,
           onPick = { leftLauncher.launch(arrayOf(APK_MIME)) },
         )
       }
       item {
         SideCard(
           label = "APK B",
-          side = rightSide,
+          result = rightSide,
           onPick = { rightLauncher.launch(arrayOf(APK_MIME)) },
         )
       }
       item {
         ComparisonResultCard(
-          left = (leftSide.result as? ApkSignerRead.Success)?.meta,
-          right = (rightSide.result as? ApkSignerRead.Success)?.meta,
+          left = (leftSide as? ApkSignerRead.Success)?.meta,
+          right = (rightSide as? ApkSignerRead.Success)?.meta,
         )
       }
       item {
@@ -163,7 +143,7 @@ private const val APK_MIME = "application/vnd.android.package-archive"
 @Composable
 private fun SideCard(
   label: String,
-  side: ApkCompareSide,
+  result: ApkSignerRead?,
   onPick: () -> Unit,
 ) {
   Card {
@@ -172,15 +152,15 @@ private fun SideCard(
       OutlinedButton(onClick = onPick, modifier = Modifier.fillMaxWidth()) {
         Text("Choose APK")
       }
-      when (val result = side.result) {
+      when (val read = result) {
         is ApkSignerRead.Success -> {
-          Text(result.meta.packageName, style = MaterialTheme.typography.bodyMedium)
+          Text(read.meta.packageName, style = MaterialTheme.typography.bodyMedium)
           Text(
-            "version ${result.meta.versionName} (${result.meta.versionCode})",
+            "version ${read.meta.versionName} (${read.meta.versionCode})",
             style = MaterialTheme.typography.bodyMedium,
           )
           Text("Current signers:", style = MaterialTheme.typography.labelSmall)
-          result.meta.signerSha256.sorted().forEach { sha ->
+          read.meta.signerSha256.sorted().forEach { sha ->
             Text(
               colonSeparatedHex(sha),
               style = MaterialTheme.typography.bodySmall,
@@ -189,7 +169,7 @@ private fun SideCard(
         }
 
         is ApkSignerRead.Failure -> Text(
-          when (val error = result.error) {
+          when (val error = read.error) {
             ApkSignerReadError.MissingFile ->
               "The file could not be accessed any more. Please choose it again."
 

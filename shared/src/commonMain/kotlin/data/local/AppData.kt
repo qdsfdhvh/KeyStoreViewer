@@ -1,6 +1,5 @@
 package data.local
 
-import androidx.compose.runtime.staticCompositionLocalOf
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.Serializable
@@ -52,6 +51,14 @@ interface ExportQuota {
   suspend fun tryConsume(): Boolean
 
   suspend fun addBonus(count: Int)
+
+  /**
+   * Re-reads date-sensitive remaining (a day rollover since the last update)
+   * into [remaining]. A retained instance must be refreshed on sheet entry,
+   * otherwise an exhausted previous day keeps Export disabled forever when no
+   * ad is ready. No-op for [UnlimitedExportQuota].
+   */
+  suspend fun refresh()
 }
 
 data object UnlimitedExportQuota : ExportQuota {
@@ -60,6 +67,8 @@ data object UnlimitedExportQuota : ExportQuota {
   override suspend fun tryConsume(): Boolean = true
 
   override suspend fun addBonus(count: Int) = Unit
+
+  override suspend fun refresh() = Unit
 }
 
 data object EmptyHistoryRepository : HistoryRepository {
@@ -81,9 +90,3 @@ data object EmptyFavoritesRepository : FavoritesRepository {
 
   override suspend fun remove(packageName: String) = Unit
 }
-
-val LocalHistoryRepository = staticCompositionLocalOf<HistoryRepository> { EmptyHistoryRepository }
-
-val LocalFavoritesRepository = staticCompositionLocalOf<FavoritesRepository> { EmptyFavoritesRepository }
-
-val LocalExportQuota = staticCompositionLocalOf<ExportQuota> { UnlimitedExportQuota }

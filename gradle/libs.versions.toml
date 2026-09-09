@@ -8,6 +8,10 @@ kotlin = "2.4.10"
 spotless = "8.10.2"
 ktlint = "1.8.0"
 navigation3 = "1.2.0-beta01"
+androidx-lifecycle = "2.11.0"
+kotlinx-coroutines = "1.11.0"
+# Metro DI: the compiler plugin line must stay compatible with `kotlin`.
+metro = "1.4.1"
 
 [libraries]
 junit = { group = "junit", name = "junit", version = "4.13.2" }
@@ -19,6 +23,13 @@ androidx-activity-compose = { module = "androidx.activity:activity-compose", ver
 
 androidx-navigationevent-compose = { module = "androidx.navigationevent:navigationevent-compose", version = "1.1.1" }
 
+# Lifecycle ViewModels: JetBrains multiplatform artifacts for shared sources
+# (delegates to androidx on Android, self-contained on desktop), and the
+# androidx Navigation3 ViewModelStore entry decorator for MainActivity.
+androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.1" }
 
 compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "compose-plugin" }
@@ -26,7 +37,6 @@ compose-ui-tooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.r
 navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
 
-molecule-runtime = { module = "app.cash.molecule:molecule-runtime", version = "2.2.0" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version = "0.37.3" }
 okio = { module = "com.squareup.okio:okio", version = "3.18.2" }
 
@@ -38,6 +48,10 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version = "2.11.2" }
 bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version = "1.82" }
 
+# Metro DI (runtime artifact is added automatically by the plugin)
+metrox-viewmodel = { module = "dev.zacsweers.metro:metrox-viewmodel", version.ref = "metro" }
+metrox-viewmodel-compose = { module = "dev.zacsweers.metro:metrox-viewmodel-compose", version.ref = "metro" }
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -47,4 +61,5 @@ compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

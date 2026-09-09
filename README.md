@@ -20,6 +20,13 @@ This is a Kotlin Multiplatform project targeting Android, Desktop.
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
 
+Building
+--------
+
+Run Gradle with JDK 21 or newer (required by the Metro Gradle plugin).
+The project still uses a Java 17 compilation toolchain; keep JDK 17 installed as well.
+For example, on macOS: `JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew :androidApp:assembleDebug`.
+
 Releasing
 ---------
 

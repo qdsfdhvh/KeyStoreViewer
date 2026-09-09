@@ -22,22 +22,19 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import dev.zacsweers.metrox.viewmodel.metroViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import signature.CertificateMeta
 import signature.KeystoreAliasInfo
-import signature.KeystoreBrowserState
 import signature.KeystoreError
 import signature.KeystoreFileFormat
 import signature.KeystoreInspection
@@ -61,8 +58,9 @@ import ui.widget.SecondaryButton as OutlinedButton
  *   only certificate entries (via the vetted FOSS BouncyCastle provider,
  *   the only JKS reader wired in here). JKS files with private key entries
  *   cannot be fully read on Android and get a specific, honest error.
- * - The password is masked, kept only in memory, never logged or persisted,
- *   and cleared on exit.
+ * - The password is masked, kept only in memory in the entry-scoped
+ *   [KeystoreBrowserViewModel], never logged or persisted, and wiped when the
+ *   entry is popped (or a new file is picked).
  * - Private keys are never accessed or exported; only certificates are shown.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,12 +70,12 @@ fun KeystoreBrowserScreen(
   modifier: Modifier = Modifier,
   context: Context = LocalContext.current,
 ) {
-  val scope = rememberCoroutineScope()
-  val browser = remember { KeystoreBrowserState() }
-
-  DisposableEffect(Unit) {
-    onDispose { browser.clear() }
-  }
+  // Scoped to this Nav3 entry's ViewModelStore: the password and keystore bytes
+  // die with the entry, never with the app.
+  val viewModel = metroViewModel<KeystoreBrowserViewModel>()
+  // Bounded file reads capture the application context only; the ViewModel
+  // must never retain an Activity.
+  val appContext = context.applicationContext
 
   val launcher = rememberLauncherForActivityResult(
     remember { ActivityResultContracts.OpenDocument() },
@@ -85,11 +83,8 @@ fun KeystoreBrowserScreen(
     if (uri == null) {
       return@rememberLauncherForActivityResult
     }
-    val token = browser.select()
-    scope.launch {
-      browser.read(token, uri.lastPathSegment?.substringAfterLast('/')) {
-        withContext(Dispatchers.IO) { readKeystoreFile(context, uri) }
-      }
+    viewModel.onFileSelected(uri.lastPathSegment?.substringAfterLast('/')) {
+      withContext(Dispatchers.IO) { readKeystoreFile(appContext, uri) }
     }
   }
 
@@ -112,26 +107,26 @@ fun KeystoreBrowserScreen(
           onClick = { launcher.launch(arrayOf("*/*")) },
           modifier = Modifier.fillMaxWidth(),
         ) {
-          Text(browser.fileName?.let { "Selected: $it" } ?: "Choose a .jks / .keystore / .p12 file")
+          Text(viewModel.fileName?.let { "Selected: $it" } ?: "Choose a .jks / .keystore / .p12 file")
         }
       }
 
-      if (browser.isReading) {
+      if (viewModel.isReading) {
         item { Text("Reading selected file…") }
       }
 
-      browser.error?.let { error ->
+      viewModel.error?.let { error ->
         item {
           ErrorCard(error)
         }
       }
 
-      if (browser.canParse) {
+      if (viewModel.canParse) {
         item {
           Column {
             OutlinedTextField(
-              value = browser.password,
-              onValueChange = { browser.password = it },
+              value = viewModel.password,
+              onValueChange = viewModel::onPasswordChanged,
               label = { Text("Keystore password") },
               singleLine = true,
               visualTransformation = PasswordVisualTransformation(),
@@ -140,19 +135,17 @@ fun KeystoreBrowserScreen(
             )
             Spacer(Modifier.height(8.dp))
             Button(
-              onClick = {
-                scope.launch { browser.parse() }
-              },
-              enabled = browser.canParse && !browser.isReading && !browser.isParsing,
+              onClick = viewModel::parse,
+              enabled = viewModel.canParse && !viewModel.isReading && !viewModel.isParsing,
               modifier = Modifier.fillMaxWidth(),
             ) {
-              Text(if (browser.isParsing) "Reading…" else "Open keystore")
+              Text(if (viewModel.isParsing) "Reading…" else "Open keystore")
             }
           }
         }
       }
 
-      when (val result = browser.inspection) {
+      when (val result = viewModel.inspection) {
         is KeystoreInspection.Failure -> item {
           ErrorCard(describeKeystoreError(result.error))
         }
