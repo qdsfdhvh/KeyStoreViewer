@@ -22,7 +22,7 @@ compose.desktop {
     nativeDistributions {
       targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
       packageName = "com.seiko.keystoreviewer"
-      packageVersion = "1.2.0"
+      packageVersion = "1.2.1"
       // Product branding generated from the same master as the Android
       // launcher icons (implementation/tools/generate_icons.py, ignored).
       linux {
