@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="18 18 72 72">
+  <title>KeyStoreViewer — signing certificate</title>
+  <desc>A white certificate with an integrated teal key on a full-bleed indigo background.</desc>
+  <path id="background" fill="#252B60" d="M0,0H108V108H0Z"/>
+  <path id="certificate" fill="#FFFFFF" fill-rule="evenodd" d="M37,28H65Q71,28 71,34V50H59C51.268,50 45,56.268 45,64C45,69.772 48.493,74.728 53.48,76.875Q53.75,77 53,77H37Q31,77 31,71V34Q31,28 37,28ZM39,38H61A2,2 0,0,1 61,42H39A2,2 0,0,1 39,38ZM39,47H51A2,2 0,0,1 51,51H39A2,2 0,0,1 39,47Z"/>
+  <path id="key" fill="#5EEAD4" fill-rule="evenodd" d="M59,54A10,10 0,0,1 68.165,60H79Q81,60 81,62V66Q81,67 80,67H79V73H75V67H72V71H68V68.359A10,10 0,1,1 59,54ZM59,60A4,4 0,1,0 59,68A4,4 0,1,0 59,60Z"/>
+</svg>

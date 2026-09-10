@@ -1,1 +1,17 @@
-Quickly view MD5, SHA1, SHA256, and public key information for app signatures for filing and more.
+Find the signing information you need for Android apps.
+
+KeyStoreViewer helps developers inspect signing certificates from installed apps and APK files. View MD5, SHA-1, and SHA-256 certificate fingerprints and public key information without digging through command-line output.
+
+KEY FEATURES
+• Inspect the signing information of installed apps.
+• Open an APK file to view its signing certificates.
+• View MD5, SHA-1, and SHA-256 certificate fingerprints.
+• View public key information, including the modulus for RSA keys.
+• Copy fingerprints and public key values, or share signature details.
+
+BUILT FOR EVERYDAY DEVELOPMENT
+• Find the certificate fingerprints required by APIs and third-party SDKs.
+• Retrieve signature and public key information for app registration.
+• Investigate signing differences between debug and release builds.
+
+Certificate fingerprints identify signing certificates. They are not APK file checksums, and a matching signature alone does not guarantee that an app is safe.
