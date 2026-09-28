@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- F-Droid/foss build: WorkManager merges WAKE_LOCK, ACCESS_NETWORK_STATE
+         and FOREGROUND_SERVICE, but this app only schedules unconstrained
+         periodic work. On minSdk 24+ JobScheduler tracks constraints and holds
+         its own wake lock, and no expedited foreground-service work is used,
+         so the extra grants are never exercised and are removed here
+         (https://github.com/qdsfdhvh/KeyStoreViewer/issues/24).
+         RECEIVE_BOOT_COMPLETED intentionally stays: the opt-in signature
+         monitor must reschedule after a device reboot. The play flavor is
+         untouched because its AdMob SDK does use network state. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_NETWORK_STATE"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.WAKE_LOCK"
+        tools:node="remove" />
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:node="remove" />
+</manifest>
