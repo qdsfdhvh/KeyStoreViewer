@@ -59,15 +59,19 @@ not promise offline-only operation, absence of ads, or app safety verification.
 
 The existing `fastlane play_upload` lane uploads the AAB but **skips metadata,
 images, and screenshots**. A normal app release will not publish these listing
-changes. This refresh does not change that automation or upload anything.
+changes. This refresh does not change that automation.
 
 To publish manually, open the app's main store listing in Google Play Console:
 
 1. Select English (United States), replace the three text fields from `en-US`,
-   and upload `en-US/images/icon.png` as the app icon.
+   and upload its `images/icon.png`, `images/featureGraphic.png`, and four
+   `images/phoneScreenshots/*.png` assets.
 2. Add/select Simplified Chinese (`zh-CN`), use its text files, and upload the
-   identical `zh-CN/images/icon.png` where localized graphics are requested.
+   identical icon plus the localized feature graphic and four phone screenshots.
 3. Preview both listings and submit the changes through the normal review flow.
 
-Screenshots and feature graphics have not been replaced. The installed launcher
-icon changes only when users install an APK/AAB containing the new resources.
+Feature graphics are 1024 × 500; phone posters are 1440 × 2560 (9:16). Both
+locales use the same certificate/key identity. Posters show actual app screens:
+installed apps, certificate fingerprints, signing tools, and an RSA public key.
+The installed launcher icon changes only when users install an APK/AAB containing
+the new resources.
