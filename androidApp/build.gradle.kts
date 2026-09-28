@@ -112,6 +112,7 @@ android {
       isDebuggable = false
       isMinifyEnabled = true
       isShrinkResources = true
+      proguardFiles("proguard-rules.pro")
       if (hasReleaseSigningProps) {
         signingConfig = signingConfigs.getByName("releaseSign")
       }
@@ -138,9 +139,15 @@ dependencies {
   implementation(libs.work.runtime.ktx)
   // Startup scope for the conditional signature-monitor re-arm.
   implementation(libs.kotlinx.coroutines.android)
-  "playImplementation"(libs.play.app.update)
-  "playImplementation"(libs.play.services.ads)
-  "playImplementation"(libs.user.messaging.platform)
+  "playImplementation"(libs.play.app.update) {
+    exclude(group = "androidx.fragment", module = "fragment")
+  }
+  "playImplementation"(libs.play.services.ads) {
+    exclude(group = "androidx.fragment", module = "fragment")
+  }
+  "playImplementation"(libs.user.messaging.platform) {
+    exclude(group = "androidx.fragment", module = "fragment")
+  }
   implementation(libs.androidx.activity.compose)
   implementation(libs.navigation3.runtime)
   implementation(libs.navigation3.ui)
