@@ -28,6 +28,7 @@ androidx-navigationevent-compose = { module = "androidx.navigationevent:navigati
 # androidx Navigation3 ViewModelStore entry decorator for MainActivity.
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 
 kotlinx-io = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version = "0.9.1" }

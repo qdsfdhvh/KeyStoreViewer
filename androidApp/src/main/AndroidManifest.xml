@@ -49,6 +49,21 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- WorkManager initializes on demand (KeyStoreViewerApplication
+             implements Configuration.Provider): the opt-in signature monitor
+             is the only WorkManager user and is off by default, so an
+             ordinary process start should not pay its setup cost. Only the
+             initializer is removed; emoji2 still uses this provider. -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="merge">
+            <meta-data
+                android:name="androidx.work.WorkManagerInitializer"
+                android:value="androidx.startup"
+                tools:node="remove" />
+        </provider>
     </application>
 
 </manifest>

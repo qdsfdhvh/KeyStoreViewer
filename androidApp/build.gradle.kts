@@ -133,6 +133,11 @@ kotlin {
 dependencies {
   implementation(projects.shared)
   implementation(libs.kotlinx.serialization.json)
+  // WorkManager initializes on demand in KeyStoreViewerApplication
+  // (Configuration.Provider + removed WorkManagerInitializer in the manifest).
+  implementation(libs.work.runtime.ktx)
+  // Startup scope for the conditional signature-monitor re-arm.
+  implementation(libs.kotlinx.coroutines.android)
   "playImplementation"(libs.play.app.update)
   "playImplementation"(libs.play.services.ads)
   "playImplementation"(libs.user.messaging.platform)
