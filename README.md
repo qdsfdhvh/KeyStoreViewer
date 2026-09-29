@@ -42,9 +42,9 @@ Required repository secrets:
 | `KEYSTORE_PASSWORD` | Keystore `storePassword` |
 | `KEYSTORE_KEY_PASSWORD` | Keystore `keyPassword` |
 | `KEYSTORE_ALIAS` | Optional, defaults to `KeyStoreViewer` |
-| `PLAY_SERVICE_ACCOUNT_JSON_B64` | Optional, base64 of a Google Play service-account JSON; enables automatic upload of the AAB to the internal track |
+| `PLAY_SERVICE_ACCOUNT_JSON_B64` | Optional, base64 of a Google Play service-account JSON; enables automatic upload of the AAB to the production track |
 
-Optional repository variable: `PLAY_TRACK` (defaults to `internal`).
+Optional repository variable: `PLAY_TRACK` (defaults to `production`).
 
 - **Google Play**: fully automated when `PLAY_SERVICE_ACCOUNT_JSON_B64` is set — the AAB is
   uploaded via fastlane `supply` (`fastlane/play_upload` lane).
